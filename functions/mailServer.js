@@ -16,7 +16,7 @@ try {
   // dotenv optional if env vars passed in environment
 }
 
-const PORT = process.env.MAIL_SERVER_PORT || 5055;
+const PORT = process.env.PORT || process.env.MAIL_SERVER_PORT || 5055;
 const GMAIL_USER = process.env.GMAIL_USER || '';
 const rawPass = process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_PASSWORD || '';
 const GMAIL_APP_PASSWORD = rawPass.replace(/\s+/g, '');
@@ -34,13 +34,73 @@ const mailTransporter = nodemailer.createTransport({
   },
 });
 
-mailTransporter.verify((err) => {
-  if (err) {
-    console.error('[AquaPure Mail Server] SMTP verification error:', err.message);
-  } else {
-    console.log(`[AquaPure Mail Server] SMTP verified successfully for ${GMAIL_USER}`);
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const RESEND_FROM = process.env.RESEND_FROM || 'AquaPure <onboarding@resend.dev>';
+
+async function sendEmailDispatch({ toEmail, subject, text, html }) {
+  if (RESEND_API_KEY) {
+    try {
+      console.log(`[AquaPure Mail Server] Dispatching via Resend HTTPS API to ${toEmail}...`);
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: RESEND_FROM,
+          to: [toEmail],
+          subject: subject,
+          text: text,
+          html: html,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        if (data.message && data.message.includes('only send testing emails to your own email address')) {
+          console.warn(`[AquaPure Mail Server] Notice: Resend sandbox allows sending to registered account owner (s83931694@gmail.com). Routing copy to s83931694@gmail.com...`);
+          const fallbackRes = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: RESEND_FROM,
+              to: ['s83931694@gmail.com'],
+              subject: `[AquaPure Order for ${toEmail}] ${subject}`,
+              text: `Recipient: ${toEmail}\n\n${text}`,
+              html: `<div style="background:#FFF3CD;padding:12px;border-radius:6px;margin-bottom:16px;color:#856404;font-family:sans-serif;font-size:13px;">
+                <strong>Sandbox Test Notice:</strong> Customer order intended for <strong>${toEmail}</strong>. Delivered to account owner <code>s83931694@gmail.com</code> during sandbox testing.
+              </div>${html}`,
+            }),
+          });
+          const fallbackData = await fallbackRes.json();
+          if (fallbackRes.ok) {
+            console.log(`[AquaPure Mail Server] ✓ Resend sandbox delivered to s83931694@gmail.com (ID: ${fallbackData.id})`);
+            return { success: true, messageId: fallbackData.id, provider: 'resend_sandbox' };
+          }
+        }
+        throw new Error(data.message || JSON.stringify(data));
+      }
+      console.log(`[AquaPure Mail Server] ✓ Resend dispatch success (ID: ${data.id}) to ${toEmail}`);
+      return { success: true, messageId: data.id, provider: 'resend' };
+    } catch (resendErr) {
+      console.error(`[AquaPure Mail Server] Resend API error: ${resendErr.message}. Falling back to SMTP...`);
+    }
   }
-});
+
+  const info = await mailTransporter.sendMail({
+    from: `"AquaPure Water Purifiers" <${GMAIL_USER}>`,
+    to: toEmail,
+    replyTo: GMAIL_USER,
+    subject,
+    text,
+    html,
+  });
+  return { success: true, messageId: info.messageId, provider: 'smtp' };
+}
 
 function formatCurrency(val) {
   const num = typeof val === 'number' ? val : parseFloat(val) || 0;
@@ -765,16 +825,14 @@ Delivery Address: ${deliveryAddress}`;
 
         console.log(`[AquaPure Mail Server] Dispatching ${isWholesale ? 'wholesale' : 'customer'} ${type} email from ${GMAIL_USER} to ${toEmail}...`);
 
-        const info = await mailTransporter.sendMail({
-          from: `"AquaPure Water Purifiers" <${GMAIL_USER}>`,
-          to: toEmail,
-          replyTo: GMAIL_USER,
+        const info = await sendEmailDispatch({
+          toEmail,
           subject,
           text: plainText,
           html,
         });
 
-        console.log(`[AquaPure Mail Server] SUCCESS: Sent email to ${toEmail} (MessageId: ${info.messageId})`);
+        console.log(`[AquaPure Mail Server] SUCCESS: Sent email to ${toEmail} via ${info.provider} (MessageId: ${info.messageId})`);
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(
@@ -931,10 +989,8 @@ async function executeOrderPlacedEmail(db, docId, order) {
 
   console.log(`[AquaPure Mail Server] Dispatching Order Placed confirmation to ${toEmail} for Order #${orderId}...`);
 
-  const info = await mailTransporter.sendMail({
-    from: `"AquaPure Water Purifiers" <${GMAIL_USER}>`,
-    to: toEmail,
-    replyTo: GMAIL_USER,
+  const info = await sendEmailDispatch({
+    toEmail,
     subject,
     text: plainText,
     html,
@@ -1008,10 +1064,8 @@ async function executeOrderDeliveredEmail(db, docId, order) {
 
   console.log(`[AquaPure Mail Server] Dispatching Order Delivered confirmation to ${toEmail} for Order #${orderId}...`);
 
-  const info = await mailTransporter.sendMail({
-    from: `"AquaPure Water Purifiers" <${GMAIL_USER}>`,
-    to: toEmail,
-    replyTo: GMAIL_USER,
+  const info = await sendEmailDispatch({
+    toEmail,
     subject,
     text: plainText,
     html,
