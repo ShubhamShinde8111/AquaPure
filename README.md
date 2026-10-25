@@ -84,7 +84,7 @@
 ### 2. Dual-Pricing Wholesale System
 - **Dealer Registration Gate**: Retail customers can submit wholesale applications with Business Name, GST Number, and Shop Address.
 - **Verification Workflow**: Accounts remain in `pending` status until verified by an administrator.
-- **Dynamic Price Switcher**: Approved wholesale dealers automatically unlock wholesale pricing (15% to 35% discount across the entire catalog).
+- **Price discount**: Approved wholesale dealers automatically unlock wholesale pricing (15% to 35% discount across the entire catalog).
 - **Bulk Ordering**: Dedicated wholesale ordering with batch volume calculations and customized wholesale invoice emails.
 
 ### 3. Service Desk & Maintenance
@@ -96,7 +96,7 @@
 - **Role-Based Gatekeeper**: Only users with verified `role: 'admin'` in Cloud Firestore can access management routes.
 - **Live KPI Overview**: Real-time metrics tracking total orders, revenue, active dealer applications, and unresolved service tickets.
 - **Order Fulfillment Desk**: Filter orders by status, inspect itemized lists, and advance order state with automatic customer notifications.
-- **Dealer Verification Console**: Review submitted GST certificates and business credentials; approve or reject in one click.
+- **Dealer Verification Console**:approve or reject in one click.
 - **Service Dispatch Desk**: Assign technicians, update status, and log diagnostic notes on service tickets.
 - **One-Click Catalog Seeding**: Populate or synchronize Firestore with the full 50+ product catalog directly from the web interface.
 
