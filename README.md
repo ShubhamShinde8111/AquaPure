@@ -43,7 +43,7 @@
                                   │      Firebase Services      │
                                   │  • Authentication (Identity)│
                                   │  • Cloud Firestore (NoSQL)  │
-                                  │  • Cloud Storage (Assets)   │
+                                  │                             │
                                   │  • Cloud Functions (Backend)│
                                   └──────────────▲──────────────┘
                                                  │
