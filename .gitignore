@@ -1,0 +1,72 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+*/.env
+*/.env.*
+!*/.env.example
+
+# Firebase & Android Secrets
+google-services.json
+*/google-services.json
+!google-services.json.example
+!*/google-services.json.example
+local.properties
+*/local.properties
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Build Artifacts & Binaries
+dist/
+build/
+web-build/
+.expo/
+*.apk
+*.aab
+*.jsbundle
+*.hbc
+
+# Android specific
+.gradle/
+.kotlin/
+.cxx/
+android/app/build/
+android/build/
+mobile/android/.gradle/
+mobile/android/.kotlin/
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/local.properties
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug*.log
+replay_pid*.log
+
+# Scratch, Temporary & Backup Files
+scratch/
+*.bak
+*.tmp
+*.swp
+*.swo
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln

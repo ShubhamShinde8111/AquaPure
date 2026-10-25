@@ -1,0 +1,147 @@
+/**
+ * AquaPure Admin — Domain Types
+ * Mirrors mobile types for admin panel use.
+ */
+
+export type UserRole = 'customer' | 'dealer' | 'admin';
+export type DealerStatus = 'pending' | 'approved' | 'rejected';
+
+export interface Address {
+  id: string;
+  label: string;
+  fullName: string;
+  phone: string;
+  email?: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  landmark?: string;
+}
+
+export interface UserProfile {
+  uid: string;
+  displayName: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+  dealerStatus?: DealerStatus;
+  businessName?: string;
+  gstNumber?: string | null;
+  addresses: Address[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ProductCategory =
+  | 'water-purifiers'
+  | 'water-dispensers'
+  | 'water-pumps'
+  | 'filters-cartridges'
+  | 'spare-parts-accessories'
+  | 'bottles-storage'
+  | 'purifiers'
+  | 'dispensers'
+  | 'pumps'
+  | 'filters'
+  | 'membranes'
+  | 'spare-parts'
+  | string;
+
+export interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  category?: string;
+  categoryId: ProductCategory;
+  description: string;
+  price?: number;
+  customerPrice: number;
+  dealerPrice?: number;
+  imageUrl: string;
+  gallery?: string[];
+  stock?: number;
+  specifications: { label: string; value: string }[];
+  stockStatus: 'in_stock' | 'out_of_stock' | 'limited';
+  active: boolean;
+  imageSearchQuery?: string;
+  imageNote?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OrderStatus =
+  | 'placed'
+  | 'confirmed'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled';
+
+export type PaymentStatus =
+  | 'pending'
+  | 'test_success'
+  | 'failed'
+  | 'cancelled'
+  | 'demo';
+
+export type OrderType = 'customer' | 'dealer';
+
+export interface OrderItem {
+  productId: string;
+  name: string;
+  imageUrl: string;
+  price: number;
+  quantity: number;
+}
+
+export interface Order {
+  id: string;
+  orderNumber?: string;
+  customerId?: string;
+  customerEmail?: string;
+  dealerId?: string;
+  dealerEmail?: string;
+  deliveredAt?: string;
+  orderType: OrderType;
+  items: OrderItem[];
+  subtotal: number;
+  total: number;
+  shippingAddress: Address;
+  paymentProvider: string;
+  paymentStatus: PaymentStatus;
+  paymentReference?: string;
+  orderStatus: OrderStatus;
+  expoPushToken?: string;
+  pushNotificationsSent?: Partial<Record<OrderStatus, string>>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ServiceType =
+  | 'installation'
+  | 'maintenance'
+  | 'repair'
+  | 'filter_replacement'
+  | 'general_inquiry';
+
+export type ServiceStatus =
+  | 'requested'
+  | 'confirmed'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled';
+
+export interface ServiceBooking {
+  id: string;
+  userId: string;
+  serviceType: ServiceType;
+  address: Address;
+  preferredDate: string;
+  preferredTime: string;
+  notes?: string;
+  status: ServiceStatus;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -1,0 +1,22 @@
+{
+  "name": "aquapure-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AquaPure — Full-Stack E-Commerce & Service Platform for Water Purifiers",
+  "scripts": {
+    "test": "npx tsx --test tests/catalog_and_cart.test.mjs && npx tsx --test tests/checkout_flow_and_cart_separation.test.mjs && node --test tests/razorpay_payment.test.mjs && node --test functions/test/functions.test.js && node --test tests/email_notifications.test.mjs",
+    "test:email": "node --test tests/email_notifications.test.mjs",
+    "test:payment": "node --test tests/razorpay_payment.test.mjs",
+    "test:functions": "node --test functions/test/functions.test.js",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test tests/firestore-rules.test.mjs\"",
+    "test:all": "npm run test && npm run test:rules",
+    "serve:functions": "firebase emulators:start --only functions",
+    "build:admin": "npm run build --prefix admin",
+    "typecheck:mobile": "npm run typecheck --prefix mobile",
+    "catalog:sync": "node scripts/syncCatalog.mjs",
+    "start:mail": "node functions/mailServer.js"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0"
+  }
+}

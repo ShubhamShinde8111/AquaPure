@@ -1,0 +1,71 @@
+/**
+ * AquaPure — Official Logo Styling
+ */
+
+.aquapure-logo-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.aquapure-logo-img {
+  display: block;
+  aspect-ratio: 1.5;
+  object-fit: contain;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Badge variant: pristine white pill/card with subtle elevation */
+.aquapure-logo-badge {
+  background: #ffffff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.aquapure-logo-badge:hover .aquapure-logo-img {
+  transform: scale(1.03);
+}
+
+/* Plain variant: no background or border */
+.aquapure-logo-plain {
+  background: transparent;
+  padding: 0;
+}
+
+/* Compact variant: square badge tailored for icon-only/collapsed sidebar */
+.aquapure-logo-compact {
+  background: #ffffff;
+  padding: 4px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+}
+
+.aquapure-logo-compact .aquapure-logo-img {
+  height: 34px !important;
+  width: auto !important;
+  object-fit: contain;
+}
+
+/* Tag/badge text (e.g. "Admin") */
+.aquapure-logo-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #210440;
+  color: #FFBA00;
+  line-height: 1.3;
+}

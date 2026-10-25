@@ -1,0 +1,572 @@
+/* ==========================================================================
+   AquaPure Admin — Service Page
+   Uses global design tokens (with fallbacks). New classes are prefixed
+   "sp-" so they never collide with other pages.
+   Breakpoints: ≤1024 tablet, ≤768 mobile (cards + bottom sheet), ≤480 small
+   ========================================================================== */
+
+.service-page {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.service-page .page-header {
+  margin-bottom: var(--space-6, 24px);
+}
+
+.service-page .page-header h1 {
+  margin: 0 0 4px;
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1.2;
+}
+
+.service-page .page-header p {
+  margin: 0;
+}
+
+/* ---------- KPI cards ---------- */
+.service-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-6, 24px);
+  margin-bottom: var(--space-6, 24px);
+}
+
+.service-kpi-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-4, 16px);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.service-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.sp-kpi-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md, 12px);
+}
+
+.sp-kpi-icon-warning {
+  background: rgba(245, 158, 11, 0.14);
+  color: #d97706;
+}
+
+.sp-kpi-icon-info {
+  background: rgba(14, 165, 233, 0.14);
+  color: #0284c7;
+}
+
+.sp-kpi-icon-success {
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+}
+
+.sp-kpi-text {
+  min-width: 0;
+}
+
+.sp-kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.sp-kpi-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+/* ---------- Controls ---------- */
+.sp-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  margin-bottom: var(--space-6, 24px);
+}
+
+.sp-search {
+  position: relative;
+  width: 100%;
+}
+
+.sp-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.sp-search-input {
+  width: 100%;
+  padding-left: 42px;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.service-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+}
+
+.service-tab {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  padding: var(--space-2, 8px) var(--space-4, 16px);
+  min-height: 36px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--color-text);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.service-tab:hover {
+  background: var(--color-border);
+}
+
+.service-tab:focus-visible,
+.sp-row:focus-visible,
+.sp-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.service-tab-active,
+.service-tab-active:hover {
+  background: var(--color-primary);
+  color: var(--color-white, #fff);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- Table ---------- */
+.sp-table-view {
+  padding: 0;
+  overflow: hidden;
+}
+
+.sp-table-view .table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sp-table-view table {
+  width: 100%;
+  min-width: 860px;
+}
+
+.sp-table-view thead th {
+  white-space: nowrap;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sp-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sp-row:hover {
+  background-color: var(--color-surface-muted);
+}
+
+.row-selected {
+  background-color: var(--color-surface-muted) !important;
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.booking-id-badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.booking-time {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.customer-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.customer-phone,
+.customer-city {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.slot-date {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.slot-time {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.sp-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.sp-closed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* ---------- Empty state ---------- */
+.sp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2, 8px);
+  padding: 48px var(--space-4, 16px);
+  color: var(--color-text-secondary);
+}
+
+.sp-empty-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ---------- Mobile cards (hidden on desktop) ---------- */
+.sp-card-list {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.sp-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sp-card:active {
+  transform: scale(0.99);
+}
+
+.sp-card-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.sp-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2, 8px);
+}
+
+.sp-card-slot {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: var(--space-3, 12px);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md, 12px);
+  color: var(--color-text-secondary);
+}
+
+.sp-card-slot svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sp-card-bottom {
+  display: flex;
+  padding-top: var(--space-3, 12px);
+  border-top: 1px solid var(--color-border);
+}
+
+.sp-card-bottom .sp-action-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 42px;
+}
+
+.sp-card-bottom .sp-closed {
+  min-height: 24px;
+}
+
+/* ---------- Detail drawer ---------- */
+.sp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  animation: sp-fade 0.18s ease;
+}
+
+.sp-drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(520px, 100%);
+  height: 100%;
+  background: var(--color-surface, #fff);
+  border-left: 2px solid var(--color-primary);
+  box-shadow: -12px 0 32px rgba(15, 23, 42, 0.18);
+  animation: sp-slide-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sp-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3, 12px);
+  padding: var(--space-5, 20px) var(--space-5, 20px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sp-detail-header h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.sp-detail-sub {
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.sp-close-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sp-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--space-5, 20px);
+}
+
+.sp-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4, 16px);
+  padding: var(--space-4, 16px);
+  background-color: var(--color-surface-muted);
+  border-radius: var(--radius-md, 12px);
+}
+
+.sp-detail-block p {
+  margin: 0 0 2px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.sp-detail-block h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.sp-strong {
+  font-weight: 600;
+}
+
+.sp-status-line {
+  margin-top: 8px !important;
+}
+
+.notes-box {
+  margin-top: var(--space-4, 16px);
+  padding: var(--space-4, 16px);
+  background-color: var(--color-surface-muted);
+  border-radius: var(--radius-md, 12px);
+  border-left: 3px solid var(--color-primary);
+}
+
+.notes-box h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin: 0 0 6px;
+  color: var(--color-primary);
+}
+
+.notes-box p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.sp-drawer-footer {
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+  padding-bottom: max(var(--space-4, 16px), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface, #fff);
+}
+
+.sp-drawer-footer .sp-action-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 44px;
+}
+
+@keyframes sp-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sp-slide-in {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes sp-slide-up {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1024px) {
+  .service-kpis {
+    gap: var(--space-4, 16px);
+  }
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+  .service-page .page-header {
+    margin-bottom: var(--space-4, 16px);
+  }
+
+  .service-kpis {
+    grid-template-columns: 1fr;
+    gap: var(--space-3, 12px);
+    margin-bottom: var(--space-4, 16px);
+  }
+
+  .sp-controls {
+    margin-bottom: var(--space-4, 16px);
+  }
+
+  /* Tabs become one horizontally scrollable row */
+  .service-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 calc(var(--space-4, 16px) * -1);
+    padding: 2px var(--space-4, 16px);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .service-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Swap table for cards */
+  .sp-table-view {
+    display: none;
+  }
+
+  .sp-card-list {
+    display: flex;
+  }
+
+  /* Drawer becomes a bottom sheet */
+  .sp-overlay {
+    align-items: flex-end;
+    justify-content: stretch;
+  }
+
+  .sp-drawer {
+    width: 100%;
+    height: auto;
+    max-height: 92vh;
+    border-left: none;
+    border-top: 3px solid var(--color-primary);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -12px 32px rgba(15, 23, 42, 0.22);
+    animation: sp-slide-up 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .sp-detail-header,
+  .sp-drawer-body,
+  .sp-drawer-footer {
+    padding-left: var(--space-4, 16px);
+    padding-right: var(--space-4, 16px);
+  }
+}
+
+/* ---------- Small phones ---------- */
+@media (max-width: 480px) {
+  .sp-close-btn span {
+    display: none;
+  }
+
+  .sp-kpi-value {
+    font-size: 24px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+
+  .sp-overlay,
+  .sp-drawer,
+  .service-kpi-card,
+  .sp-card {
+    animation: none;
+    transition: none;
+  }
+}
