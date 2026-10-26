@@ -42,6 +42,7 @@ interface AuthState {
   user: FirebaseUser | null;
   profile: UserProfile | null;
   loading: boolean;
+  isInitialized: boolean;
   error: string | null;
   pendingAction: PendingAuthAction | null;
 
@@ -53,6 +54,7 @@ interface AuthState {
 
   // Actions
   initialize: () => () => void;
+  waitForProfile: () => Promise<UserProfile | null>;
   signIn: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signUpCustomer: (params: {
     email: string;
@@ -78,10 +80,17 @@ interface AuthState {
   executePendingAction: (router: { replace: (url: any) => void; push?: (url: any) => void }) => boolean;
 }
 
+let activeAuthUnsubscribe: (() => void) | null = null;
+let resolveProfileReady: ((profile: UserProfile | null) => void) | null = null;
+const profileReadyPromise = new Promise<UserProfile | null>((resolve) => {
+  resolveProfileReady = resolve;
+});
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   profile: null,
   loading: true,
+  isInitialized: false,
   error: null,
   pendingAction: null,
 
@@ -90,25 +99,43 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isDealerApproved: false,
   isAdmin: false,
 
+  waitForProfile: async () => {
+    if (get().isInitialized) {
+      return get().profile;
+    }
+    return profileReadyPromise;
+  },
+
   initialize: () => {
+    // If listener is already active, return the existing unsubscribe handler
+    if (activeAuthUnsubscribe) {
+      return activeAuthUnsubscribe;
+    }
+
+    // Safety timeout: If Firebase auth or Firestore takes longer than 4s (e.g. offline hang),
+    // mark initialized so app can proceed smoothly without hanging splash screen indefinitely
+    const safetyTimer = setTimeout(() => {
+      if (!get().isInitialized) {
+        set({ isInitialized: true, loading: false });
+        if (resolveProfileReady) {
+          resolveProfileReady(get().profile);
+          resolveProfileReady = null;
+        }
+      }
+    }, 4000);
+
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      clearTimeout(safetyTimer);
       if (fbUser) {
         set({ user: fbUser, loading: true });
         try {
           const profileDoc = await getDoc(doc(db, 'users', fbUser.uid));
+          let profile: UserProfile;
           if (profileDoc.exists()) {
-            const profile = profileDoc.data() as UserProfile;
-            set({
-              profile,
-              isAuthenticated: true,
-              isDealer: profile.role === 'dealer',
-              isDealerApproved: profile.role === 'dealer' && profile.dealerStatus === 'approved',
-              isAdmin: profile.role === 'admin',
-              loading: false,
-            });
+            profile = profileDoc.data() as UserProfile;
           } else {
             // Default profile if doc doesn't exist yet
-            const defaultProfile: UserProfile = {
+            profile = {
               uid: fbUser.uid,
               displayName: fbUser.displayName || 'Customer',
               email: fbUser.email || '',
@@ -118,18 +145,56 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               updatedAt: new Date().toISOString(),
             };
             // Seed doc in Firestore so future updates never fail
-            setDoc(doc(db, 'users', fbUser.uid), defaultProfile).catch(() => { });
-            set({
-              profile: defaultProfile,
-              isAuthenticated: true,
-              isDealer: false,
-              isDealerApproved: false,
-              isAdmin: false,
-              loading: false,
-            });
+            setDoc(doc(db, 'users', fbUser.uid), profile).catch(() => {});
           }
-        } catch {
-          set({ loading: false });
+
+          const isDealer = profile.role === 'dealer';
+          const isDealerApproved = isDealer && profile.dealerStatus === 'approved';
+          const isAdmin = profile.role === 'admin';
+
+          set({
+            user: fbUser,
+            profile,
+            isAuthenticated: true,
+            isDealer,
+            isDealerApproved,
+            isAdmin,
+            loading: false,
+            isInitialized: true,
+          });
+
+          // Sync cart dealer prices if dealer status was recognized
+          useCartStore.getState().syncDealerPrices(isDealerApproved);
+
+          if (resolveProfileReady) {
+            resolveProfileReady(profile);
+            resolveProfileReady = null;
+          }
+        } catch (err) {
+          console.warn('[authStore] Profile fetch fallback:', err);
+          const fallbackProfile: UserProfile = {
+            uid: fbUser.uid,
+            displayName: fbUser.displayName || 'Customer',
+            email: fbUser.email || '',
+            role: 'customer',
+            addresses: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          set({
+            user: fbUser,
+            profile: fallbackProfile,
+            isAuthenticated: true,
+            isDealer: false,
+            isDealerApproved: false,
+            isAdmin: false,
+            loading: false,
+            isInitialized: true,
+          });
+          if (resolveProfileReady) {
+            resolveProfileReady(fallbackProfile);
+            resolveProfileReady = null;
+          }
         }
       } else {
         set({
@@ -140,10 +205,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isDealerApproved: false,
           isAdmin: false,
           loading: false,
+          isInitialized: true,
         });
+        useCartStore.getState().syncDealerPrices(false);
+        if (resolveProfileReady) {
+          resolveProfileReady(null);
+          resolveProfileReady = null;
+        }
       }
     });
 
+    activeAuthUnsubscribe = unsubscribe;
     return unsubscribe;
   },
 
@@ -268,7 +340,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isDealerApproved: false,
         isAdmin: false,
         loading: false,
+        isInitialized: true,
       });
+      useCartStore.getState().syncDealerPrices(false);
     }
   },
 

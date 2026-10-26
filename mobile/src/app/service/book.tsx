@@ -18,7 +18,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme/colors';
+import { colors, ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/hooks/useTheme';
 import { spacing, radius } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { Input } from '@/components/ui/Input';
@@ -84,6 +85,8 @@ const TIME_SLOTS = [
 ];
 
 export default function BookServiceScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
   const { user, profile, refreshProfile, setPendingAction, pendingAction, clearPendingAction } =
     useAuthStore();
 
@@ -482,192 +485,195 @@ export default function BookServiceScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.white,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navTitle: {
-    ...typography.heading2,
-    color: colors.text,
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: '#FFEBEE',
-    padding: spacing.md,
-    borderRadius: radius.md,
-  },
-  errorText: {
-    ...typography.bodySmall,
-    color: colors.error,
-    flex: 1,
-  },
-  guestBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: '#F3E8FF',
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: '#D8B4FE',
-  },
-  guestBannerTitle: {
-    ...typography.label,
-    color: colors.primary,
-    fontSize: 13,
-  },
-  guestBannerSubtitle: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  guestBannerAction: {
-    ...typography.label,
-    color: colors.primary,
-    fontWeight: '700',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    overflow: 'hidden',
-  },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardSectionTitle: {
-    ...typography.heading2,
-    color: colors.text,
-    fontSize: 16,
-    marginBottom: spacing.md,
-  },
-  optionsList: {
-    gap: spacing.sm,
-  },
-  serviceOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
-  },
-  serviceOptionSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.white,
-  },
-  iconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  optionTitle: {
-    ...typography.heading3,
-    color: colors.text,
-    fontSize: 14,
-  },
-  optionDesc: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-    lineHeight: 16,
-  },
-  optionFee: {
-    ...typography.labelSmall,
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  fieldLabel: {
-    ...typography.label,
-    color: colors.text,
-    fontSize: 13,
-    marginBottom: spacing.xs,
-  },
-  pillsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  pill: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
-  },
-  pillActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  pillText: {
-    ...typography.bodySmall,
-    color: colors.text,
-  },
-  pillTextActive: {
-    color: colors.white,
-    fontWeight: '700',
-  },
-  slotsList: {
-    gap: spacing.xs,
-  },
-  slotItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
-  },
-  slotItemSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.white,
-  },
-  slotText: {
-    ...typography.bodySmall,
-    color: colors.text,
-    fontWeight: '600',
-  },
-});
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    navBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    navTitle: {
+      ...typography.heading2,
+      color: colors.text,
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      padding: spacing.lg,
+      gap: spacing.lg,
+    },
+    errorBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: isDark ? 'rgba(198, 40, 40, 0.25)' : '#FFEBEE',
+      padding: spacing.md,
+      borderRadius: radius.md,
+    },
+    errorText: {
+      ...typography.bodySmall,
+      color: colors.error,
+      flex: 1,
+    },
+    guestBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: isDark ? 'rgba(167, 139, 250, 0.15)' : '#F3E8FF',
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(167, 139, 250, 0.3)' : '#D8B4FE',
+    },
+    guestBannerTitle: {
+      ...typography.label,
+      color: colors.primary,
+      fontSize: 13,
+    },
+    guestBannerSubtitle: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    guestBannerAction: {
+      ...typography.label,
+      color: colors.primary,
+      fontWeight: '700',
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      backgroundColor: colors.card,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cardSectionTitle: {
+      ...typography.heading2,
+      color: colors.text,
+      fontSize: 16,
+      marginBottom: spacing.md,
+    },
+    optionsList: {
+      gap: spacing.sm,
+    },
+    serviceOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      padding: spacing.md,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceMuted,
+    },
+    serviceOptionSelected: {
+      borderColor: colors.primary,
+      backgroundColor: isDark ? 'rgba(167, 139, 250, 0.12)' : colors.card,
+    },
+    iconWrap: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    optionTitle: {
+      ...typography.heading3,
+      color: colors.text,
+      fontSize: 14,
+    },
+    optionDesc: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+      lineHeight: 16,
+    },
+    optionFee: {
+      ...typography.labelSmall,
+      color: colors.primary,
+      fontSize: 11,
+      fontWeight: '700',
+      marginTop: 4,
+    },
+    fieldLabel: {
+      ...typography.label,
+      color: colors.text,
+      fontSize: 13,
+      marginBottom: spacing.xs,
+    },
+    pillsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+    },
+    pill: {
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.full,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceMuted,
+    },
+    pillActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    pillText: {
+      ...typography.bodySmall,
+      color: colors.text,
+    },
+    pillTextActive: {
+      color: isDark ? '#210440' : colors.white,
+      fontWeight: '700',
+    },
+    slotsList: {
+      gap: spacing.xs,
+    },
+    slotItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surfaceMuted,
+    },
+    slotItemSelected: {
+      borderColor: colors.primary,
+      backgroundColor: isDark ? 'rgba(167, 139, 250, 0.12)' : colors.card,
+    },
+    slotText: {
+      ...typography.bodySmall,
+      color: colors.text,
+      fontWeight: '600',
+    },
+  });

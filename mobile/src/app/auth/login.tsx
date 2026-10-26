@@ -18,7 +18,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme/colors';
+import { showToast } from '@/stores/toastStore';
+import { colors, ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/hooks/useTheme';
 import { spacing, radius } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { Input } from '@/components/ui/Input';
@@ -27,6 +29,8 @@ import { AppRefreshControl, AquaPureLogo } from '@/components/ui';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 export default function LoginScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -64,6 +68,11 @@ export default function LoginScreen() {
 
     const res = await signIn(email.trim(), password);
     if (res.success) {
+      showToast({
+        title: 'Login Successful',
+        message: 'Welcome back to AquaPure!',
+        type: 'success',
+      });
       const executed = executePendingAction(router);
       if (!executed) {
         router.replace('/(tabs)/profile');
@@ -220,189 +229,190 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: spacing['4xl'],
-  },
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: spacing['4xl'],
+    },
 
-  // Hero
-  hero: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing['4xl'] + spacing.md, // room for card overlap
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    overflow: 'hidden',
-  },
-  circleLarge: {
-    position: 'absolute',
-    top: -60,
-    right: -50,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-  },
-  circleSmall: {
-    position: 'absolute',
-    bottom: 10,
-    left: -40,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.20)',
-    marginBottom: spacing.md,
-  },
-  heroCenter: {
-    alignItems: 'center',
-  },
-  brandIconWrap: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  title: {
-    ...typography.heading1,
-    color: '#FFFFFF',
-    fontSize: 28,
-    marginBottom: spacing.xs,
-    textAlign: 'center',
-  },
-  subtitle: {
-    ...typography.body,
-    color: 'rgba(255,255,255,0.88)',
-    textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: spacing.md,
-  },
+    // Hero
+    hero: {
+      backgroundColor: isDark ? '#1C1327' : '#210440',
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing['4xl'] + spacing.md, // room for card overlap
+      borderBottomLeftRadius: 32,
+      borderBottomRightRadius: 32,
+      overflow: 'hidden',
+    },
+    circleLarge: {
+      position: 'absolute',
+      top: -60,
+      right: -50,
+      width: 200,
+      height: 200,
+      borderRadius: 100,
+      backgroundColor: 'rgba(255,255,255,0.10)',
+    },
+    circleSmall: {
+      position: 'absolute',
+      bottom: 10,
+      left: -40,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,0.20)',
+      marginBottom: spacing.md,
+    },
+    heroCenter: {
+      alignItems: 'center',
+    },
+    brandIconWrap: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 16,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.sm,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.10,
+      shadowRadius: 6,
+      elevation: 2,
+    },
+    title: {
+      ...typography.heading1,
+      color: '#FFFFFF',
+      fontSize: 28,
+      marginBottom: spacing.xs,
+      textAlign: 'center',
+    },
+    subtitle: {
+      ...typography.body,
+      color: 'rgba(255,255,255,0.88)',
+      textAlign: 'center',
+      lineHeight: 22,
+      paddingHorizontal: spacing.md,
+    },
 
-  // Form
-  formCard: {
-    backgroundColor: colors.white,
-    borderRadius: 24,
-    padding: spacing.xl,
-    marginHorizontal: spacing.lg,
-    marginTop: -(spacing['3xl'] ?? 40),
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  pendingActionBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: '#EBF4FE',
-    padding: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-  },
-  pendingActionText: {
-    ...typography.bodySmall,
-    color: colors.primary,
-    fontWeight: '600',
-    flex: 1,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: '#FFEBEE',
-    padding: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.error,
-  },
-  errorText: {
-    ...typography.bodySmall,
-    color: colors.error,
-    flex: 1,
-  },
+    // Form
+    formCard: {
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      padding: spacing.xl,
+      marginHorizontal: spacing.lg,
+      marginTop: -(spacing['3xl'] ?? 40),
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.08,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    pendingActionBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: isDark ? 'rgba(167, 139, 250, 0.15)' : '#EBF4FE',
+      padding: spacing.md,
+      borderRadius: 12,
+      marginBottom: spacing.md,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.primary,
+    },
+    pendingActionText: {
+      ...typography.bodySmall,
+      color: colors.primary,
+      fontWeight: '600',
+      flex: 1,
+    },
+    errorBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FFEBEE',
+      padding: spacing.md,
+      borderRadius: 12,
+      marginBottom: spacing.md,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.error,
+    },
+    errorText: {
+      ...typography.bodySmall,
+      color: colors.error,
+      flex: 1,
+    },
 
-  // Footer
-  footer: {
-    marginTop: spacing.xl,
-    marginHorizontal: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.lg,
-  },
-  signupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  footerText: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  linkText: {
-    ...typography.label,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  divider: {
-    height: 1,
-    width: '100%',
-    backgroundColor: colors.border,
-  },
-  dealerBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    width: '100%',
-  },
-  dealerIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dealerTitle: {
-    ...typography.heading3,
-    color: colors.text,
-    fontSize: 14,
-  },
-  dealerSub: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontSize: 12,
-  },
-});
+    // Footer
+    footer: {
+      marginTop: spacing.xl,
+      marginHorizontal: spacing.lg,
+      alignItems: 'center',
+      gap: spacing.lg,
+    },
+    signupRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    footerText: {
+      ...typography.body,
+      color: colors.textSecondary,
+    },
+    linkText: {
+      ...typography.label,
+      color: colors.primary,
+      fontWeight: '700',
+    },
+    divider: {
+      height: 1,
+      width: '100%',
+      backgroundColor: colors.border,
+    },
+    dealerBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.card,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      width: '100%',
+    },
+    dealerIconWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    dealerTitle: {
+      ...typography.heading3,
+      color: colors.text,
+      fontSize: 14,
+    },
+    dealerSub: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+      fontSize: 12,
+    },
+  });

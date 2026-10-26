@@ -21,7 +21,8 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/theme/colors';
+import { colors, ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/hooks/useTheme';
 import { spacing, radius } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { PaymentService } from '@/services/paymentService';
@@ -54,6 +55,8 @@ export function RazorpayModal({
   onFailure,
   onDismiss,
 }: RazorpayModalProps) {
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
   const [activeTab, setActiveTab] = useState<TabType>('upi');
   const [upiType, setUpiType] = useState<'success' | 'failure'>('success');
   const [selectedBank, setSelectedBank] = useState('HDFC Bank');
@@ -322,7 +325,7 @@ export function RazorpayModal({
                   accessibilityRole="button"
                 >
                   <Text style={styles.payBtnText}>Pay {formattedAmount}</Text>
-                  <Ionicons name="arrow-forward" size={16} color={colors.white} />
+                  <Ionicons name="arrow-forward" size={16} color={isDark ? '#210440' : colors.white} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -350,22 +353,23 @@ export function RazorpayModal({
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.md,
-  },
-  dialog: {
-    backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    width: '100%',
-    maxWidth: 440,
-    maxHeight: '90%',
-    overflow: 'hidden',
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    flex: { flex: 1 },
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.65)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: spacing.md,
+    },
+    dialog: {
+      backgroundColor: colors.card,
+      borderRadius: radius.xl,
+      width: '100%',
+      maxWidth: 440,
+      maxHeight: '90%',
+      overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -437,11 +441,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F0FDFA',
+    backgroundColor: isDark ? 'rgba(167, 139, 250, 0.12)' : '#F0FDFA',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#CCFBF1',
+    borderBottomColor: isDark ? 'rgba(167, 139, 250, 0.25)' : '#CCFBF1',
   },
   amountLabel: {
     fontSize: 12,
@@ -487,7 +491,7 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     borderBottomColor: colors.primary,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   tabText: {
     fontSize: 13,
@@ -523,12 +527,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     gap: spacing.md,
   },
   radioCardSelected: {
     borderColor: colors.primary,
-    backgroundColor: '#F0FDFA',
+    backgroundColor: isDark ? 'rgba(167, 139, 250, 0.12)' : '#F0FDFA',
   },
   radioTitle: {
     fontSize: 14,
@@ -620,11 +624,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     gap: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   bankRowSelected: {
     borderColor: colors.primary,
-    backgroundColor: '#F0FDFA',
+    backgroundColor: isDark ? 'rgba(167, 139, 250, 0.12)' : '#F0FDFA',
   },
   bankName: {
     fontSize: 14,
@@ -633,7 +637,7 @@ const styles = StyleSheet.create({
   },
   disclaimerBox: {
     flexDirection: 'row',
-    backgroundColor: '#FFFBEB',
+    backgroundColor: isDark ? 'rgba(255, 186, 0, 0.15)' : '#FFFBEB',
     padding: spacing.sm,
     borderRadius: radius.md,
     gap: spacing.xs,
@@ -642,7 +646,7 @@ const styles = StyleSheet.create({
   },
   disclaimerText: {
     fontSize: 11,
-    color: '#92400E',
+    color: isDark ? colors.yellow : '#92400E',
     flex: 1,
     lineHeight: 15,
   },
@@ -662,7 +666,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   payBtnText: {
-    color: colors.white,
+    color: isDark ? '#210440' : colors.white,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -709,3 +713,5 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 });
+
+

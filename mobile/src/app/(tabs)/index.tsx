@@ -30,14 +30,14 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { colors } from '@/theme/colors';
-import { spacing, radius } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { useTheme, colors, spacing, radius, typography } from '@/theme';
 import { ProductsService } from '@/services/productsService';
 import { Product } from '@/types';
 import { CATEGORIES } from '@/data/seedProducts';
 import { AppRefreshControl, AquaPureLogo } from '@/components/ui';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const IS_SMALL = SCREEN_WIDTH < 360;
@@ -87,9 +87,10 @@ const SectionHeader = memo(function SectionHeader({
   onViewAll: () => void;
   viewAllLabel: string;
 }) {
+  const { colors, isDark } = useTheme();
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
       <TouchableOpacity
         onPress={onViewAll}
         accessibilityRole="button"
@@ -97,8 +98,8 @@ const SectionHeader = memo(function SectionHeader({
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={styles.viewAllWrap}
       >
-        <Text style={styles.viewAll}>View all</Text>
-        <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+        <Text style={[styles.viewAll, { color: isDark ? colors.yellow : colors.primary }]}>View all</Text>
+        <Ionicons name="chevron-forward" size={14} color={isDark ? colors.yellow : colors.primary} />
       </TouchableOpacity>
     </View>
   );
@@ -111,19 +112,19 @@ const ProductCard = memo(function ProductCard({
   product: Product;
   onPress: (p: Product) => void;
 }) {
+  const { colors, isDark } = useTheme();
   const soldOut = product.stockStatus === 'out_of_stock';
   const limited = product.stockStatus === 'limited';
 
   return (
     <TouchableOpacity
-      style={styles.carouselCard}
+      style={[styles.carouselCard, { backgroundColor: colors.card, borderColor: colors.border }]}
       activeOpacity={0.85}
       onPress={() => onPress(product)}
       accessibilityRole="button"
-      accessibilityLabel={`${product.name}, price ${formatPrice(product.customerPrice)}${soldOut ? ', sold out' : ''
-        }`}
+      accessibilityLabel={`${product.name}, price ${formatPrice(product.customerPrice)}${soldOut ? ', sold out' : ''}`}
     >
-      <View style={styles.carouselImageWrap}>
+      <View style={[styles.carouselImageWrap, { backgroundColor: isDark ? '#160E21' : colors.surfaceMuted }]}>
         <Image
           source={{ uri: product.imageUrl }}
           style={[styles.carouselImage, soldOut && styles.dimmed]}
@@ -136,13 +137,13 @@ const ProductCard = memo(function ProductCard({
         )}
       </View>
       <View style={styles.carouselCardContent}>
-        <Text style={styles.carouselCategoryLabel} numberOfLines={1}>
+        <Text style={[styles.carouselCategoryLabel, { color: colors.textSecondary }]} numberOfLines={1}>
           {formatCategory(product.categoryId)}
         </Text>
-        <Text style={styles.carouselProductName} numberOfLines={2}>
+        <Text style={[styles.carouselProductName, { color: colors.text }]} numberOfLines={2}>
           {product.name}
         </Text>
-        <Text style={[styles.carouselPrice, soldOut && styles.priceMuted]}>
+        <Text style={[styles.carouselPrice, { color: isDark ? colors.yellow : colors.primary }, soldOut && styles.priceMuted]}>
           {formatPrice(product.customerPrice)}
         </Text>
       </View>
@@ -182,6 +183,12 @@ const SkeletonCard = memo(function SkeletonCard() {
 // ─────────────────────────────────────────────
 
 export default function HomeScreen() {
+  const { colors, isDark } = useTheme();
+  const profile = useAuthStore((state) => state.profile);
+  const isDealerApproved = useAuthStore((state) => state.isDealerApproved);
+  const cartItems = useCartStore((state) => state.items);
+  const cartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [dealProducts, setDealProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -288,10 +295,12 @@ export default function HomeScreen() {
     );
   };
 
+  const headerBg = isDark ? '#140A20' : colors.primary;
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: headerBg }]} edges={['top']}>
       <ScrollView
-        style={styles.scrollView}
+        style={[styles.scrollView, { backgroundColor: colors.background }]}
         contentContainerStyle={{ paddingBottom: bottomPadding }}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -303,31 +312,69 @@ export default function HomeScreen() {
         }
       >
         {/* ── Top block: header + search + hero ── */}
-        <View style={styles.topBlock}>
+        <View style={[styles.topBlock, { backgroundColor: headerBg }]}>
           <View style={styles.header}>
             <View style={styles.brandLogoWrap}>
               <AquaPureLogo width={66} />
             </View>
-            <TouchableOpacity
-              style={styles.headerIcon}
-              onPress={() => router.push('/(tabs)/cart')}
-              accessibilityRole="button"
-              accessibilityLabel="Open cart"
-            >
-              <Ionicons name="cart-outline" size={22} color={colors.white} />
-            </TouchableOpacity>
+
+            <View style={styles.headerRightGroup}>
+              {profile ? (
+                <TouchableOpacity
+                  style={styles.profileBadge}
+                  onPress={() => router.push('/(tabs)/profile')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open user profile"
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.profileAvatar}>
+                    <Text style={styles.profileAvatarText}>
+                      {(profile.displayName || 'U').charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.profileGreetingWrap}>
+                    <Text style={styles.profileGreetingSmall}>Hello,</Text>
+                    <Text style={styles.profileGreetingName} numberOfLines={1}>
+                      {profile.displayName ? profile.displayName.split(' ')[0] : 'Customer'}
+                    </Text>
+                  </View>
+                  {isDealerApproved ? (
+                    <View style={styles.dealerPill}>
+                      <Ionicons name="shield-checkmark" size={10} color="#210440" />
+                      <Text style={styles.dealerPillText}>Dealer</Text>
+                    </View>
+                  ) : null}
+                </TouchableOpacity>
+              ) : null}
+
+              <TouchableOpacity
+                style={styles.headerIcon}
+                onPress={() => router.push('/(tabs)/cart')}
+                accessibilityRole="button"
+                accessibilityLabel="Open cart"
+              >
+                <Ionicons name="cart-outline" size={22} color="#FFFFFF" />
+                {cartItemsCount > 0 && (
+                  <View style={styles.cartBadge}>
+                    <Text style={styles.cartBadgeText}>
+                      {cartItemsCount > 9 ? '9+' : cartItemsCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Tap-to-search field */}
           <TouchableOpacity
-            style={styles.searchBar}
+            style={[styles.searchBar, { backgroundColor: isDark ? '#231733' : '#FFFFFF' }]}
             activeOpacity={0.9}
             onPress={() => handleNavigateCategories()}
             accessibilityRole="search"
             accessibilityLabel="Search purifiers, filters and spare parts"
           >
             <Ionicons name="search-outline" size={20} color={colors.textSecondary} />
-            <Text style={styles.searchPlaceholder} numberOfLines={1}>
+            <Text style={[styles.searchPlaceholder, { color: colors.textSecondary }]} numberOfLines={1}>
               Search purifiers, filters, spares
             </Text>
           </TouchableOpacity>
@@ -336,7 +383,7 @@ export default function HomeScreen() {
           <View style={styles.hero}>
             <View style={styles.heroContent}>
               <Text style={styles.heroTitle}>Pure water for a{'\n'}healthier home</Text>
-              <Text style={styles.heroSubtitle}>
+              <Text style={[styles.heroSubtitle, { color: colors.peach }]}>
                 Purifiers, filters and accessories, delivered and installed.
               </Text>
               <TouchableOpacity
@@ -347,7 +394,7 @@ export default function HomeScreen() {
                 accessibilityLabel="Shop now"
               >
                 <Text style={styles.heroCtaText}>Shop now</Text>
-                <Ionicons name="arrow-forward" size={18} color={colors.primary} />
+                <Ionicons name="arrow-forward" size={18} color="#210440" />
               </TouchableOpacity>
             </View>
             <View style={styles.heroDecor1} />
@@ -356,18 +403,18 @@ export default function HomeScreen() {
         </View>
 
         {/* ── Trust strip (overlaps hero) ── */}
-        <View style={styles.trustStrip}>
+        <View style={[styles.trustStrip, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {TRUST_ITEMS.map((item, i) => (
-            <View key={item.icon} style={[styles.trustItem, i > 0 && styles.trustItemDivider]}>
+            <View key={item.icon} style={[styles.trustItem, i > 0 && [styles.trustItemDivider, { borderLeftColor: colors.border }]]}>
               <Ionicons name={item.icon} size={20} color={colors.primary} />
-              <Text style={styles.trustLabel}>{item.label}</Text>
+              <Text style={[styles.trustLabel, { color: colors.text }]}>{item.label}</Text>
             </View>
           ))}
         </View>
 
         {/* ── Shortcuts: Book service + categories ── */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, styles.sectionTitleStandalone]}>
+          <Text style={[styles.sectionTitle, styles.sectionTitleStandalone, { color: colors.text }]}>
             Shop by category
           </Text>
           <ScrollView
@@ -382,10 +429,10 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel="Book technician service"
             >
-              <View style={[styles.categoryIconWrap, styles.serviceIconWrap]}>
-                <Ionicons name="construct" size={26} color={colors.white} />
+              <View style={[styles.categoryIconWrap, styles.serviceIconWrap, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+                <Ionicons name="construct" size={26} color="#FFFFFF" />
               </View>
-              <Text style={[styles.categoryLabel, styles.serviceLabel]} numberOfLines={2}>
+              <Text style={[styles.categoryLabel, styles.serviceLabel, { color: colors.primary }]} numberOfLines={2}>
                 Book{'\n'}service
               </Text>
             </TouchableOpacity>
@@ -399,10 +446,10 @@ export default function HomeScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`Browse ${cat.name}`}
               >
-                <View style={styles.categoryIconWrap}>
+                <View style={[styles.categoryIconWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
                   <Text style={styles.categoryIconEmoji}>{cat.icon}</Text>
                 </View>
-                <Text style={styles.categoryLabel} numberOfLines={2}>
+                <Text style={[styles.categoryLabel, { color: colors.text }]} numberOfLines={2}>
                   {shortCategoryName(cat.name)}
                 </Text>
               </TouchableOpacity>
@@ -422,7 +469,7 @@ export default function HomeScreen() {
 
         {/* ── Service banner ── */}
         <TouchableOpacity
-          style={styles.serviceBanner}
+          style={[styles.serviceBanner, { backgroundColor: isDark ? '#26153B' : colors.primary, borderColor: isDark ? '#402364' : 'transparent' }]}
           activeOpacity={0.85}
           onPress={() => router.push('/service/book')}
           accessibilityRole="button"
@@ -430,16 +477,16 @@ export default function HomeScreen() {
         >
           <View style={styles.serviceBannerInner}>
             <View style={styles.serviceIconCircle}>
-              <Ionicons name="construct-outline" size={24} color={colors.white} />
+              <Ionicons name="construct-outline" size={24} color="#FFFFFF" />
             </View>
             <View style={styles.serviceBannerTextWrap}>
               <Text style={styles.serviceBannerTitle}>Need maintenance or repair?</Text>
-              <Text style={styles.serviceBannerDesc}>
+              <Text style={[styles.serviceBannerDesc, { color: colors.peach }]}>
                 Book a certified technician at your doorstep
               </Text>
             </View>
             <View style={styles.serviceBannerArrow}>
-              <Ionicons name="chevron-forward" size={20} color={colors.white} />
+              <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
             </View>
           </View>
         </TouchableOpacity>
@@ -513,6 +560,65 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  headerRightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  profileBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    borderRadius: radius.full,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    gap: 6,
+  },
+  profileAvatar: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.yellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileAvatarText: {
+    ...typography.labelSmall,
+    color: '#210440',
+    fontWeight: '800',
+    fontSize: 12,
+  },
+  profileGreetingWrap: {
+    justifyContent: 'center',
+  },
+  profileGreetingSmall: {
+    ...typography.labelSmall,
+    color: colors.peach,
+    fontSize: 9,
+    lineHeight: 10,
+  },
+  profileGreetingName: {
+    ...typography.label,
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    maxWidth: 80,
+  },
+  dealerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.yellow,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 8,
+    gap: 2,
+  },
+  dealerPillText: {
+    ...typography.labelSmall,
+    color: '#210440',
+    fontSize: 9,
+    fontWeight: '800',
+  },
   headerIcon: {
     width: 44,
     height: 44,
@@ -520,6 +626,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.yellow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  cartBadgeText: {
+    ...typography.labelSmall,
+    color: '#210440',
+    fontSize: 9,
+    fontWeight: '800',
   },
 
   // ── Search ──
@@ -724,7 +849,7 @@ const styles = StyleSheet.create({
   },
   carouselCard: {
     width: CAROUSEL_CARD_WIDTH,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: radius.lg,
     overflow: 'hidden',
     borderWidth: 1,
@@ -808,7 +933,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,

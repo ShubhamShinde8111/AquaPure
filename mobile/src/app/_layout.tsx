@@ -9,26 +9,34 @@ import React, { useEffect } from 'react';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { colors } from '@/theme/colors';
+import { useTheme } from '@/theme';
 import { NotificationsService } from '@/services/notificationsService';
 import { useAuthStore } from '@/stores/authStore';
+import { Toast, AppSplashScreen } from '@/components/ui';
 
 // Prevent splash screen from auto-hiding before root navigation is ready
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
+  const isInitialized = useAuthStore((state) => state.isInitialized);
   const user = useAuthStore((state) => state.user);
+  const initializeAuth = useAuthStore((state) => state.initialize);
+  const { isDark, colors } = useTheme();
 
+  // 1. App open: First initialize auth & load user profile
   useEffect(() => {
-    const hideSplash = async () => {
-      try {
-        await SplashScreen.hideAsync();
-      } catch {
-        // In case hideAsync fails or was already called
-      }
+    const unsub = initializeAuth();
+    return () => {
+      unsub();
     };
-    hideSplash();
-  }, []);
+  }, [initializeAuth]);
+
+  // 2. Once user profile is loaded, dismiss splash screen
+  useEffect(() => {
+    if (isInitialized) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [isInitialized]);
 
   // Setup push notification channels & deep link tap navigation
   useEffect(() => {
@@ -65,9 +73,20 @@ export default function RootLayout() {
     }
   }, [user?.uid]);
 
+  // While user profile is loading, render branded AppSplashScreen
+  // This guarantees that catalog, orders, and tab screens only load after profile is available
+  if (!isInitialized) {
+    return (
+      <>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <AppSplashScreen message="Loading your profile…" />
+      </>
+    );
+  }
+
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -75,6 +94,7 @@ export default function RootLayout() {
           animation: 'fade',
         }}
       />
+      <Toast />
     </>
   );
 }

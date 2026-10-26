@@ -40,7 +40,8 @@ import { router } from 'expo-router';
 import { useCartStore } from '@/stores/cartStore';
 import { useCheckoutStore } from '@/stores/checkoutStore';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme/colors';
+import { colors, ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/hooks/useTheme';
 import { spacing, radius } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { Input } from '@/components/ui/Input';
@@ -96,15 +97,26 @@ const PAYMENT_OPTIONS: {
 
 // ── Small components ──
 function FieldError({ message }: { message?: string }) {
+  const { colors } = useTheme();
   if (!message) return null;
   return (
-    <Text style={styles.fieldError} accessibilityLiveRegion="polite">
+    <Text
+      style={{
+        ...typography.caption,
+        color: colors.error,
+        marginTop: -spacing.xs + 2,
+        marginBottom: spacing.xs,
+      }}
+      accessibilityLiveRegion="polite"
+    >
       {message}
     </Text>
   );
 }
 
 export default function CheckoutScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
   const {
     items,
     source,
@@ -1530,66 +1542,67 @@ export default function CheckoutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  // ── Nav ──
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.white,
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navSpacer: {
-    width: 44,
-  },
-  navTitleWrap: {
-    alignItems: 'center',
-  },
-  navTitle: {
-    ...typography.heading2,
-    color: colors.text,
-  },
-  secureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 1,
-  },
-  secureText: {
-    ...typography.labelSmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-  },
+    // ── Nav ──
+    navBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    backBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    navSpacer: {
+      width: 44,
+    },
+    navTitleWrap: {
+      alignItems: 'center',
+    },
+    navTitle: {
+      ...typography.heading2,
+      color: colors.text,
+    },
+    secureRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 1,
+    },
+    secureText: {
+      ...typography.labelSmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+    },
 
-  // ── Stepper ──
-  stepperContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
+    // ── Stepper ──
+    stepperContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      backgroundColor: colors.card,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
   stepItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1684,7 +1697,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   reviewProductCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
@@ -1795,7 +1808,7 @@ const styles = StyleSheet.create({
     minWidth: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   reviewQtyValue: {
     ...typography.bodyMedium,
@@ -1840,7 +1853,7 @@ const styles = StyleSheet.create({
   deliveryFreeNotice: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: isDark ? 'rgba(46, 125, 50, 0.25)' : '#E8F5E9',
     padding: spacing.xs,
     borderRadius: radius.sm,
     gap: 6,
@@ -1860,7 +1873,7 @@ const styles = StyleSheet.create({
   compactReviewBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
@@ -1907,7 +1920,7 @@ const styles = StyleSheet.create({
 
   // ── Common Cards ──
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
@@ -1953,7 +1966,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1973,7 +1986,7 @@ const styles = StyleSheet.create({
   locSuccessBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: isDark ? 'rgba(46, 125, 50, 0.25)' : '#E8F5E9',
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -1988,7 +2001,7 @@ const styles = StyleSheet.create({
   locWarningBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF8E1',
+    backgroundColor: isDark ? 'rgba(239, 108, 0, 0.25)' : '#FFF8E1',
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -2003,7 +2016,7 @@ const styles = StyleSheet.create({
   locErrorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFEBEE',
+    backgroundColor: isDark ? 'rgba(198, 40, 40, 0.25)' : '#FFEBEE',
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -2036,7 +2049,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   savedAddressChipSelected: {
     borderColor: colors.primary,
@@ -2098,7 +2111,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   tagBadgeActive: {
     borderColor: colors.primary,
@@ -2227,7 +2240,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: '#FFEBEE',
+    backgroundColor: isDark ? 'rgba(198, 40, 40, 0.25)' : '#FFEBEE',
     borderRadius: radius.md,
     padding: spacing.sm,
   },
@@ -2269,7 +2282,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     shadowColor: colors.primary,

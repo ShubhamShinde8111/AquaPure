@@ -32,9 +32,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { Order, Product } from '@/types';
 import { db } from '@/services/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { colors } from '@/theme/colors';
-import { spacing, radius } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { useTheme, useThemedStyles, ThemeColors, spacing, radius, typography } from '@/theme';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState, ErrorState, LoadingState, AppRefreshControl } from '@/components/ui';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -124,6 +122,8 @@ const DEMO_ORDERS: Order[] = [
 type FilterType = 'all' | 'active' | 'completed';
 
 export default function OrdersScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
   const insets = useSafeAreaInsets();
   const { user, isDealerApproved } = useAuthStore();
   const { addItem } = useCartStore();
@@ -277,24 +277,26 @@ export default function OrdersScreen() {
     });
   };
 
+  const headerBg = isDark ? '#140A20' : colors.primary;
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: headerBg }]} edges={['top']}>
       {/* Brand Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: headerBg }]}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.title}>My Orders</Text>
-            <Text style={styles.subtitle}>Track shipment, warranty and deliveries</Text>
+            <Text style={[styles.title, { color: '#FFFFFF' }]}>My Orders</Text>
+            <Text style={[styles.subtitle, { color: colors.peach }]}>Track shipment, warranty and deliveries</Text>
           </View>
           {!user && (
             <TouchableOpacity
-              style={styles.signInBadge}
+              style={[styles.signInBadge, { backgroundColor: colors.yellow }]}
               onPress={() => router.push('/auth/login')}
               accessibilityLabel="Sign In"
               accessibilityRole="button"
             >
-              <Ionicons name="log-in-outline" size={14} color={colors.primary} />
-              <Text style={styles.signInBadgeText}>Sign In</Text>
+              <Ionicons name="log-in-outline" size={14} color="#210440" />
+              <Text style={[styles.signInBadgeText, { color: '#210440' }]}>Sign In</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -317,7 +319,11 @@ export default function OrdersScreen() {
               return (
                 <TouchableOpacity
                   key={tab.key}
-                  style={[styles.filterTab, isActive && styles.filterTabActive]}
+                  style={[
+                    styles.filterTab,
+                    { backgroundColor: isDark ? '#231733' : 'rgba(255, 255, 255, 0.15)' },
+                    isActive && [styles.filterTabActive, { backgroundColor: colors.yellow }],
+                  ]}
                   onPress={() => setSelectedFilter(tab.key)}
                   activeOpacity={0.8}
                   accessibilityLabel={`Filter ${tab.label} orders, ${tab.count} items`}
@@ -341,16 +347,16 @@ export default function OrdersScreen() {
 
       {/* Main Body */}
       {loading && !refreshing ? (
-        <View style={styles.loadingContainer}>
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
           <LoadingState message="Loading your orders…" />
         </View>
       ) : error && orders.length === 0 ? (
-        <View style={styles.errorContainer}>
+        <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
           <ErrorState message={error} onRetry={fetchUserOrders} />
         </View>
       ) : (
         <ScrollView
-          style={styles.scrollView}
+          style={[styles.scrollView, { backgroundColor: colors.background }]}
           contentContainerStyle={[
             styles.scrollContent,
             filteredOrders.length === 0 && { flexGrow: 1, justifyContent: 'center' },
@@ -576,7 +582,7 @@ export default function OrdersScreen() {
                         accessibilityRole="button"
                       >
                         <Text style={styles.detailsBtnText}>Details</Text>
-                        <Ionicons name="arrow-forward" size={14} color={colors.primary} />
+                        <Ionicons name="arrow-forward" size={14} color={isDark ? colors.yellow : colors.primary} />
                       </TouchableOpacity>
 
                       <TouchableOpacity
@@ -588,10 +594,10 @@ export default function OrdersScreen() {
                         accessibilityRole="button"
                       >
                         {isBuying ? (
-                          <ActivityIndicator size="small" color={colors.primary} />
+                          <ActivityIndicator size="small" color="#210440" />
                         ) : (
                           <>
-                            <Ionicons name="refresh-outline" size={15} color={colors.primary} />
+                            <Ionicons name="refresh-outline" size={15} color="#210440" />
                             <Text style={styles.buyAgainBtnText}>Buy Again</Text>
                           </>
                         )}
@@ -608,424 +614,427 @@ export default function OrdersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
-  header: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  title: {
-    ...typography.heading1,
-    color: colors.white,
-    fontSize: 24,
-  },
-  subtitle: {
-    ...typography.bodySmall,
-    color: colors.peach,
-    marginTop: 2,
-  },
-  signInBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.yellow,
-    paddingVertical: 5,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
-  },
-  signInBadgeText: {
-    ...typography.labelSmall,
-    color: colors.primary,
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  filterContainer: {
-    marginTop: spacing.xs,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingRight: spacing.md,
-  },
-  filterTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 7,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-  },
-  filterTabActive: {
-    backgroundColor: colors.yellow,
-    borderColor: colors.yellow,
-  },
-  filterTabText: {
-    ...typography.labelSmall,
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  filterTabTextActive: {
-    color: colors.primary,
-    fontWeight: '800',
-  },
-  countBadge: {
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  countBadgeActive: {
-    backgroundColor: colors.primary,
-  },
-  countBadgeText: {
-    ...typography.labelSmall,
-    color: colors.white,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  countBadgeTextActive: {
-    color: colors.yellow,
-    fontWeight: '800',
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    paddingVertical: spacing['3xl'],
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-  },
-  demoNoticeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: '#FEF3C7',
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-  },
-  demoNoticeText: {
-    ...typography.bodySmall,
-    color: colors.text,
-    fontSize: 11,
-    flex: 1,
-    lineHeight: 16,
-  },
-  serviceBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: '#F3E8FF',
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: '#D8B4FE',
-  },
-  serviceBannerIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  serviceBannerTitle: {
-    ...typography.label,
-    color: colors.primary,
-    fontSize: 13,
-  },
-  serviceBannerSubtitle: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  serviceBannerAction: {
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: '#D8B4FE',
-  },
-  serviceBannerActionText: {
-    ...typography.label,
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  orderCard: {
-    backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  orderTopBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.md,
-  },
-  orderNumberContainer: {
-    flex: 1,
-    paddingRight: spacing.sm,
-  },
-  orderNumberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  orderIdText: {
-    ...typography.heading3,
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  detailsChevronBadge: {
-    padding: 2,
-  },
-  orderDate: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  trackerWrapper: {
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  cancelledBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  cancelledText: {
-    ...typography.labelSmall,
-    color: colors.error,
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  progressContainer: {
-    gap: spacing.sm,
-  },
-  stepperRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  stepColumn: {
-    alignItems: 'center',
-    width: 58,
-  },
-  stepNode: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: colors.white,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  stepNodeCompleted: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  stepNodeCurrent: {
-    backgroundColor: colors.primary,
-    borderColor: colors.yellow,
-    borderWidth: 3,
-  },
-  stepNodeInner: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.border,
-  },
-  stepNodeLabel: {
-    ...typography.labelSmall,
-    fontSize: 10,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  stepNodeLabelCompleted: {
-    color: colors.text,
-    fontWeight: '600',
-  },
-  stepNodeLabelCurrent: {
-    color: colors.primary,
-    fontWeight: '800',
-  },
-  connectorLineWrapper: {
-    flex: 1,
-    height: 20,
-    justifyContent: 'center',
-    marginHorizontal: -4,
-  },
-  connectorLine: {
-    height: 2,
-    backgroundColor: colors.border,
-    width: '100%',
-  },
-  connectorLineCompleted: {
-    backgroundColor: colors.primary,
-  },
-  deliveryStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingTop: spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: '#EED7D0',
-    marginTop: 2,
-  },
-  deliveryStatusText: {
-    ...typography.labelSmall,
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  itemsWrapper: {
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  orderItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  itemThumb: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemName: {
-    ...typography.bodySmall,
-    fontWeight: '600',
-    color: colors.text,
-    fontSize: 13,
-    lineHeight: 17,
-  },
-  itemQty: {
-    ...typography.labelSmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  itemTotal: {
-    ...typography.label,
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  orderFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  totalBlock: {
-    justifyContent: 'center',
-  },
-  footerLabel: {
-    ...typography.labelSmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-  },
-  footerAmount: {
-    ...typography.heading2,
-    color: colors.primary,
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  footerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  detailsBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
-  },
-  detailsBtnText: {
-    ...typography.labelSmall,
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  buyAgainBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: colors.yellow,
-    paddingVertical: 7,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  buyAgainBtnText: {
-    ...typography.labelSmall,
-    color: colors.primary,
-    fontWeight: '800',
-    fontSize: 12,
-  },
-});
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: isDark ? '#140A20' : colors.primary,
+    },
+    header: {
+      backgroundColor: isDark ? '#140A20' : colors.primary,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.md,
+    },
+    headerTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+    },
+    title: {
+      ...typography.heading1,
+      color: '#FFFFFF',
+      fontSize: 24,
+    },
+    subtitle: {
+      ...typography.bodySmall,
+      color: colors.peach,
+      marginTop: 2,
+    },
+    signInBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: colors.yellow,
+      paddingVertical: 5,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.full,
+    },
+    signInBadgeText: {
+      ...typography.labelSmall,
+      color: '#210440',
+      fontWeight: '700',
+      fontSize: 12,
+    },
+    filterContainer: {
+      marginTop: spacing.xs,
+    },
+    filterRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      paddingRight: spacing.md,
+    },
+    filterTab: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 7,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.full,
+      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.18)',
+    },
+    filterTabActive: {
+      backgroundColor: colors.yellow,
+      borderColor: colors.yellow,
+    },
+    filterTabText: {
+      ...typography.labelSmall,
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    filterTabTextActive: {
+      color: '#210440',
+      fontWeight: '800',
+    },
+    countBadge: {
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: 'rgba(255, 255, 255, 0.25)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 4,
+    },
+    countBadgeActive: {
+      backgroundColor: '#210440',
+    },
+    countBadgeText: {
+      ...typography.labelSmall,
+      color: '#FFFFFF',
+      fontSize: 10,
+      fontWeight: '700',
+    },
+    countBadgeTextActive: {
+      color: colors.yellow,
+      fontWeight: '800',
+    },
+    loadingContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    errorContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+    },
+    emptyContainer: {
+      flex: 1,
+      paddingVertical: spacing['3xl'],
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      padding: spacing.lg,
+      gap: spacing.lg,
+    },
+    demoNoticeBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: isDark ? '#2D200E' : '#FEF3C7',
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderWidth: 1,
+      borderColor: isDark ? '#4D3618' : '#FDE68A',
+    },
+    demoNoticeText: {
+      ...typography.bodySmall,
+      color: colors.text,
+      fontSize: 11,
+      flex: 1,
+      lineHeight: 16,
+    },
+    serviceBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: isDark ? '#26153B' : '#F3E8FF',
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: isDark ? '#4A2A70' : '#D8B4FE',
+    },
+    serviceBannerIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    serviceBannerTitle: {
+      ...typography.label,
+      color: isDark ? '#FFFFFF' : colors.primary,
+      fontSize: 13,
+    },
+    serviceBannerSubtitle: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    serviceBannerAction: {
+      backgroundColor: colors.card,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      borderRadius: radius.full,
+      borderWidth: 1,
+      borderColor: isDark ? '#4A2A70' : '#D8B4FE',
+    },
+    serviceBannerActionText: {
+      ...typography.label,
+      color: isDark ? colors.yellow : colors.primary,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    orderCard: {
+      backgroundColor: colors.card,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: '#000',
+      shadowOpacity: isDark ? 0.3 : 0.04,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    orderTopBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: spacing.md,
+    },
+    orderNumberContainer: {
+      flex: 1,
+      paddingRight: spacing.sm,
+    },
+    orderNumberRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    orderIdText: {
+      ...typography.heading3,
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    detailsChevronBadge: {
+      padding: 2,
+    },
+    orderDate: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    trackerWrapper: {
+      backgroundColor: colors.surfaceMuted,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+    },
+    cancelledBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingVertical: spacing.xs,
+    },
+    cancelledText: {
+      ...typography.labelSmall,
+      color: colors.error,
+      fontWeight: '700',
+      fontSize: 12,
+    },
+    progressContainer: {
+      gap: spacing.sm,
+    },
+    stepperRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+    },
+    stepColumn: {
+      alignItems: 'center',
+      width: 58,
+    },
+    stepNode: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: colors.card,
+      borderWidth: 2,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 4,
+    },
+    stepNodeCompleted: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    stepNodeCurrent: {
+      backgroundColor: colors.primary,
+      borderColor: colors.yellow,
+      borderWidth: 3,
+    },
+    stepNodeInner: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.border,
+    },
+    stepNodeLabel: {
+      ...typography.labelSmall,
+      fontSize: 10,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    stepNodeLabelCompleted: {
+      color: colors.text,
+      fontWeight: '600',
+    },
+    stepNodeLabelCurrent: {
+      color: isDark ? colors.yellow : colors.primary,
+      fontWeight: '800',
+    },
+    connectorLineWrapper: {
+      flex: 1,
+      height: 20,
+      justifyContent: 'center',
+      marginHorizontal: -4,
+    },
+    connectorLine: {
+      height: 2,
+      backgroundColor: colors.border,
+      width: '100%',
+    },
+    connectorLineCompleted: {
+      backgroundColor: colors.primary,
+    },
+    deliveryStatusRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingTop: spacing.xs,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      marginTop: 2,
+    },
+    deliveryStatusText: {
+      ...typography.labelSmall,
+      color: isDark ? colors.yellow : colors.primary,
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    itemsWrapper: {
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: spacing.md,
+      gap: spacing.md,
+    },
+    orderItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+    },
+    itemThumb: {
+      width: 48,
+      height: 48,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+    },
+    itemDetails: {
+      flex: 1,
+    },
+    itemName: {
+      ...typography.bodySmall,
+      fontWeight: '600',
+      color: colors.text,
+      fontSize: 13,
+      lineHeight: 17,
+    },
+    itemQty: {
+      ...typography.labelSmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    itemTotal: {
+      ...typography.label,
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    orderFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: spacing.md,
+    },
+    totalBlock: {
+      justifyContent: 'center',
+    },
+    footerLabel: {
+      ...typography.labelSmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+    },
+    footerAmount: {
+      ...typography.heading2,
+      color: isDark ? colors.yellow : colors.primary,
+      fontSize: 18,
+      fontWeight: '800',
+    },
+    footerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    detailsBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
+      paddingVertical: 6,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    detailsBtnText: {
+      ...typography.labelSmall,
+      color: isDark ? colors.yellow : colors.primary,
+      fontSize: 11,
+      fontWeight: '700',
+    },
+    buyAgainBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      backgroundColor: colors.yellow,
+      paddingVertical: 7,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.md,
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    buyAgainBtnText: {
+      ...typography.labelSmall,
+      color: '#210440',
+      fontWeight: '800',
+      fontSize: 12,
+    },
+  });

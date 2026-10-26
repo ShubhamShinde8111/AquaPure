@@ -17,20 +17,25 @@ try {
 }
 
 const PORT = process.env.PORT || process.env.MAIL_SERVER_PORT || 5055;
-const GMAIL_USER = process.env.GMAIL_USER || '';
+const GMAIL_USER = process.env.GMAIL_USER || 's83931694@gmail.com';
 const rawPass = process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_PASSWORD || '';
 const GMAIL_APP_PASSWORD = rawPass.replace(/\s+/g, '');
 
 console.log(`[AquaPure Mail Server] Initializing with sender: ${GMAIL_USER}`);
 if (!GMAIL_APP_PASSWORD) {
-  console.warn('[AquaPure Mail Server] WARNING: GMAIL_APP_PASSWORD not set in functions/.env');
+  console.warn('[AquaPure Mail Server] WARNING: GMAIL_APP_PASSWORD not set');
 }
 
 const mailTransporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_APP_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
@@ -38,9 +43,29 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const RESEND_FROM = process.env.RESEND_FROM || 'AquaPure <onboarding@resend.dev>';
 
 async function sendEmailDispatch({ toEmail, subject, text, html }) {
+  // 1. Primary: Direct Nodemailer Gmail SMTP (Delivers directly to customer/dealer inbox)
+  if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+    try {
+      console.log(`[AquaPure Mail Server] Dispatching via Gmail SMTP (Nodemailer) to ${toEmail}...`);
+      const info = await mailTransporter.sendMail({
+        from: `"AquaPure Water Purifiers" <${GMAIL_USER}>`,
+        to: toEmail,
+        replyTo: GMAIL_USER,
+        subject,
+        text,
+        html,
+      });
+      console.log(`[AquaPure Mail Server] ✓ Nodemailer Gmail SMTP success to ${toEmail} (MessageId: ${info.messageId})`);
+      return { success: true, messageId: info.messageId, provider: 'nodemailer_smtp' };
+    } catch (smtpErr) {
+      console.error(`[AquaPure Mail Server] Nodemailer SMTP error: ${smtpErr.message}. Attempting fallback...`);
+    }
+  }
+
+  // 2. Fallback: Resend HTTPS API (only if Gmail SMTP was not configured or failed)
   if (RESEND_API_KEY) {
     try {
-      console.log(`[AquaPure Mail Server] Dispatching via Resend HTTPS API to ${toEmail}...`);
+      console.log(`[AquaPure Mail Server] Dispatching via Resend API to ${toEmail}...`);
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -58,48 +83,17 @@ async function sendEmailDispatch({ toEmail, subject, text, html }) {
 
       const data = await response.json();
       if (!response.ok) {
-        if (data.message && data.message.includes('only send testing emails to your own email address')) {
-          console.warn(`[AquaPure Mail Server] Notice: Resend sandbox allows sending to registered account owner (s83931694@gmail.com). Routing copy to s83931694@gmail.com...`);
-          const fallbackRes = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${RESEND_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              from: RESEND_FROM,
-              to: ['s83931694@gmail.com'],
-              subject: `[AquaPure Order for ${toEmail}] ${subject}`,
-              text: `Recipient: ${toEmail}\n\n${text}`,
-              html: `<div style="background:#FFF3CD;padding:12px;border-radius:6px;margin-bottom:16px;color:#856404;font-family:sans-serif;font-size:13px;">
-                <strong>Sandbox Test Notice:</strong> Customer order intended for <strong>${toEmail}</strong>. Delivered to account owner <code>s83931694@gmail.com</code> during sandbox testing.
-              </div>${html}`,
-            }),
-          });
-          const fallbackData = await fallbackRes.json();
-          if (fallbackRes.ok) {
-            console.log(`[AquaPure Mail Server] ✓ Resend sandbox delivered to s83931694@gmail.com (ID: ${fallbackData.id})`);
-            return { success: true, messageId: fallbackData.id, provider: 'resend_sandbox' };
-          }
-        }
         throw new Error(data.message || JSON.stringify(data));
       }
       console.log(`[AquaPure Mail Server] ✓ Resend dispatch success (ID: ${data.id}) to ${toEmail}`);
       return { success: true, messageId: data.id, provider: 'resend' };
     } catch (resendErr) {
-      console.error(`[AquaPure Mail Server] Resend API error: ${resendErr.message}. Falling back to SMTP...`);
+      console.error(`[AquaPure Mail Server] Resend API error: ${resendErr.message}`);
+      throw resendErr;
     }
   }
 
-  const info = await mailTransporter.sendMail({
-    from: `"AquaPure Water Purifiers" <${GMAIL_USER}>`,
-    to: toEmail,
-    replyTo: GMAIL_USER,
-    subject,
-    text,
-    html,
-  });
-  return { success: true, messageId: info.messageId, provider: 'smtp' };
+  throw new Error('No mail transport configured or both Nodemailer and Resend failed');
 }
 
 function formatCurrency(val) {

@@ -18,7 +18,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
-import { colors } from '@/theme/colors';
+import { colors, ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/hooks/useTheme';
 import { spacing, radius } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { Input, TextInputRef } from '@/components/ui/Input';
@@ -34,6 +35,8 @@ const BENEFITS = [
 ] as const;
 
 export default function DealerRegisterScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
   const [businessName, setBusinessName] = useState('');
   const [contactName, setContactName] = useState('');
   const [email, setEmail] = useState('');
@@ -348,237 +351,242 @@ export default function DealerRegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: spacing['4xl'],
-  },
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: spacing['4xl'],
+    },
 
-  // Hero
-  hero: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing['4xl'] + spacing.md, // room for card overlap
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    overflow: 'hidden',
-  },
-  circleLarge: {
-    position: 'absolute',
-    top: -60,
-    right: -50,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.10)',
-  },
-  circleSmall: {
-    position: 'absolute',
-    bottom: 10,
-    left: -40,
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.20)',
-    marginBottom: spacing.lg,
-  },
-  heroLogoBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginBottom: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  badgeWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.yellow,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 5,
-    borderRadius: radius.full,
-    alignSelf: 'flex-start',
-    marginBottom: spacing.md,
-  },
-  badgeText: {
-    ...typography.labelSmall,
-    color: colors.primary,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-  },
-  title: {
-    ...typography.heading1,
-    color: '#FFFFFF',
-    fontSize: 26,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    ...typography.body,
-    color: 'rgba(255,255,255,0.88)',
-    lineHeight: 22,
-  },
-  benefitsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-  },
-  benefitChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  benefitText: {
-    ...typography.bodySmall,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
+    // Hero
+    hero: {
+      backgroundColor: isDark ? '#1C1327' : '#210440',
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing['4xl'] + spacing.md, // room for card overlap
+      borderBottomLeftRadius: 32,
+      borderBottomRightRadius: 32,
+      overflow: 'hidden',
+    },
+    circleLarge: {
+      position: 'absolute',
+      top: -60,
+      right: -50,
+      width: 200,
+      height: 200,
+      borderRadius: 100,
+      backgroundColor: 'rgba(255,255,255,0.10)',
+    },
+    circleSmall: {
+      position: 'absolute',
+      bottom: 10,
+      left: -40,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,0.20)',
+      marginBottom: spacing.lg,
+    },
+    heroLogoBadge: {
+      alignSelf: 'flex-start',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 14,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      marginBottom: spacing.sm,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.10,
+      shadowRadius: 5,
+      elevation: 2,
+    },
+    badgeWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.yellow,
+      paddingHorizontal: spacing.sm + 2,
+      paddingVertical: 5,
+      borderRadius: radius.full,
+      alignSelf: 'flex-start',
+      marginBottom: spacing.md,
+    },
+    badgeText: {
+      ...typography.labelSmall,
+      color: '#210440',
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+    },
+    title: {
+      ...typography.heading1,
+      color: '#FFFFFF',
+      fontSize: 26,
+      marginBottom: spacing.xs,
+    },
+    subtitle: {
+      ...typography.body,
+      color: 'rgba(255,255,255,0.88)',
+      lineHeight: 22,
+    },
+    benefitsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+      marginTop: spacing.lg,
+    },
+    benefitChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 999,
+      backgroundColor: 'rgba(255,255,255,0.18)',
+    },
+    benefitText: {
+      ...typography.bodySmall,
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
 
-  // Form
-  formCard: {
-    backgroundColor: colors.white,
-    borderRadius: 24,
-    padding: spacing.xl,
-    marginHorizontal: spacing.lg,
-    marginTop: -(spacing['3xl'] ?? 40),
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: '#FFEBEE',
-    padding: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.error,
-  },
-  errorText: {
-    ...typography.bodySmall,
-    color: colors.error,
-    flex: 1,
-  },
+    // Form
+    formCard: {
+      backgroundColor: colors.card,
+      borderRadius: 24,
+      padding: spacing.xl,
+      marginHorizontal: spacing.lg,
+      marginTop: -(spacing['3xl'] ?? 40),
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.08,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    errorBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FFEBEE',
+      padding: spacing.md,
+      borderRadius: 12,
+      marginBottom: spacing.md,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.error,
+    },
+    errorText: {
+      ...typography.bodySmall,
+      color: colors.error,
+      flex: 1,
+    },
 
-  // Footer
-  footer: {
-    marginTop: spacing.xl,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  footerText: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  linkText: {
-    ...typography.label,
-    color: colors.primary,
-    fontWeight: '700',
-  },
+    // Footer
+    footer: {
+      marginTop: spacing.xl,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    footerText: {
+      ...typography.body,
+      color: colors.textSecondary,
+    },
+    linkText: {
+      ...typography.label,
+      color: colors.primary,
+      fontWeight: '700',
+    },
 
-  // Success state
-  successContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing['2xl'],
-  },
-  successLogoWrap: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginBottom: spacing.xl,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  successIconOuter: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    backgroundColor: 'rgba(76,175,80,0.10)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  successIconInner: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  successTitle: {
-    ...typography.heading1,
-    color: colors.text,
-    marginBottom: spacing.sm,
-    textAlign: 'center',
-  },
-  successDesc: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: spacing.xl,
-  },
-  pendingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: '#FFF8E1',
-    borderWidth: 1,
-    borderColor: colors.warning,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-  },
-  pendingText: {
-    ...typography.labelSmall,
-    color: colors.warning,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-});
+    // Success state
+    successContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: spacing['2xl'],
+    },
+    successLogoWrap: {
+      backgroundColor: colors.card,
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      marginBottom: spacing.xl,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.10,
+      shadowRadius: 10,
+      elevation: 3,
+    },
+    successIconOuter: {
+      width: 128,
+      height: 128,
+      borderRadius: 64,
+      backgroundColor: 'rgba(76,175,80,0.10)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.lg,
+    },
+    successIconInner: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.08,
+      shadowRadius: 14,
+      elevation: 4,
+    },
+    successTitle: {
+      ...typography.heading1,
+      color: colors.text,
+      marginBottom: spacing.sm,
+      textAlign: 'center',
+    },
+    successDesc: {
+      ...typography.body,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+      marginBottom: spacing.xl,
+    },
+    pendingBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      backgroundColor: isDark ? 'rgba(255, 186, 0, 0.15)' : '#FFF8E1',
+      borderWidth: 1,
+      borderColor: colors.warning,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.full,
+    },
+    pendingText: {
+      ...typography.labelSmall,
+      color: colors.warning,
+      fontWeight: '700',
+      letterSpacing: 1,
+    },
+  });

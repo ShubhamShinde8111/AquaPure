@@ -1,6 +1,7 @@
 /**
  * AquaPure — Product Card Component
  * Conforms to DESIGN.md §5 Reusable Component Library & §5.4 Product Card
+ * Fully dynamic light and dark mode styling.
  */
 
 import React, { useState } from 'react';
@@ -10,15 +11,12 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Product } from '@/types';
-import { colors } from '@/theme/colors';
-import { spacing, radius } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { useTheme, spacing, radius, typography } from '@/theme';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -35,6 +33,7 @@ export function ProductCard({
   onAddToCart,
   horizontal = false,
 }: ProductCardProps) {
+  const { colors, isDark } = useTheme();
   const [imageError, setImageError] = useState(false);
   const { user, setPendingAction } = useAuthStore();
 
@@ -68,14 +67,28 @@ export function ProductCard({
 
   return (
     <TouchableOpacity
-      style={[styles.card, horizontal && styles.cardHorizontal]}
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          shadowOpacity: isDark ? 0.35 : 0.05,
+        },
+        horizontal && styles.cardHorizontal,
+      ]}
       onPress={handlePress}
       activeOpacity={0.85}
       accessibilityRole="button"
       accessibilityLabel={`${product.name}, price ${formattedCustomerPrice}`}
     >
       {/* Product Image */}
-      <View style={[styles.imageContainer, horizontal && styles.imageContainerHorizontal]}>
+      <View
+        style={[
+          styles.imageContainer,
+          { backgroundColor: isDark ? '#160E21' : colors.surfaceMuted },
+          horizontal && styles.imageContainerHorizontal,
+        ]}
+      >
         {!imageError && product.imageUrl ? (
           <Image
             source={{ uri: product.imageUrl }}
@@ -84,9 +97,9 @@ export function ProductCard({
             onError={() => setImageError(true)}
           />
         ) : (
-          <View style={[styles.image, styles.placeholderContainer]}>
+          <View style={[styles.image, styles.placeholderContainer, { backgroundColor: isDark ? '#160E21' : colors.surfaceMuted }]}>
             <Ionicons name="water-outline" size={36} color={colors.textSecondary} />
-            <Text style={styles.placeholderText}>Image unavailable</Text>
+            <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>Image unavailable</Text>
           </View>
         )}
         {product.stockStatus === 'limited' && (
@@ -103,60 +116,66 @@ export function ProductCard({
 
       {/* Product Details */}
       <View style={[styles.content, horizontal && styles.contentHorizontal]}>
-        <Text style={styles.categoryName} numberOfLines={1}>
-          {categoryDisplay}
-        </Text>
-        <Text style={styles.productName} numberOfLines={2}>
-          {product.name}
-        </Text>
-
-        {/* Pricing */}
-        <View style={styles.priceRow}>
-          <Text style={styles.customerPrice}>{formattedCustomerPrice}</Text>
-          {isDealer && formattedDealerPrice && (
-            <View style={styles.dealerPricePill}>
-              <Text style={styles.dealerPriceText}>Dealer: {formattedDealerPrice}</Text>
-            </View>
-          )}
+        <View style={styles.headerInfo}>
+          <Text style={[styles.categoryName, { color: colors.textSecondary }]} numberOfLines={1}>
+            {categoryDisplay}
+          </Text>
+          <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
+            {product.name}
+          </Text>
         </View>
 
-        {/* Action Button */}
-        {onAddToCart && product.stockStatus !== 'out_of_stock' && (
-          <TouchableOpacity
-            style={styles.cartButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              if (!user) {
-                Alert.alert(
-                  'Sign In Required',
-                  'Please sign in to add this item to your cart.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Sign In',
-                      onPress: () => {
-                        setPendingAction({
-                          type: 'ADD_TO_CART',
-                          product,
-                          quantity: 1,
-                          returnUrl: `/product/${product.id}`,
-                        });
-                        router.push('/auth/login');
+        <View style={styles.footerInfo}>
+          {/* Pricing */}
+          <View style={styles.priceRow}>
+            <Text style={[styles.customerPrice, { color: isDark ? colors.yellow : colors.primary }]}>
+              {formattedCustomerPrice}
+            </Text>
+            {isDealer && formattedDealerPrice && (
+              <View style={[styles.dealerPricePill, { backgroundColor: colors.surfaceMuted }]}>
+                <Text style={[styles.dealerPriceText, { color: colors.coral }]}>Dealer: {formattedDealerPrice}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Action Button */}
+          {onAddToCart && product.stockStatus !== 'out_of_stock' && (
+            <TouchableOpacity
+              style={styles.cartButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                if (!user) {
+                  Alert.alert(
+                    'Sign In Required',
+                    'Please sign in to add this item to your cart.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Sign In',
+                        onPress: () => {
+                          setPendingAction({
+                            type: 'ADD_TO_CART',
+                            product,
+                            quantity: 1,
+                            returnUrl: `/product/${product.id}`,
+                          });
+                          router.push('/auth/login');
+                        },
                       },
-                    },
-                  ]
-                );
-                return;
-              }
-              onAddToCart(product);
-            }}
-            activeOpacity={0.8}
-            accessibilityLabel={`Add ${product.name} to cart`}
-          >
-            <Ionicons name="cart-outline" size={16} color={colors.primary} />
-            <Text style={styles.cartButtonText}>Add</Text>
-          </TouchableOpacity>
-        )}
+                    ]
+                  );
+                  return;
+                }
+                onAddToCart(product);
+              }}
+              activeOpacity={0.8}
+              accessibilityLabel={`Add ${product.name} to cart`}
+            >
+              <Ionicons name="cart-outline" size={16} color="#210440" />
+              <Text style={styles.cartButtonText}>Add</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -164,27 +183,25 @@ export function ProductCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     overflow: 'hidden',
     width: '100%',
-    shadowColor: colors.primary,
+    flex: 1,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
   },
   cardHorizontal: {
     flexDirection: 'row',
     width: 280,
+    flex: 0,
     marginRight: spacing.md,
   },
   imageContainer: {
     width: '100%',
     height: 150,
-    backgroundColor: colors.surfaceMuted,
     position: 'relative',
   },
   imageContainerHorizontal: {
@@ -202,21 +219,26 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.md,
-    gap: spacing.xs,
+    flex: 1,
+    justifyContent: 'space-between',
   },
   contentHorizontal: {
     flex: 1,
     justifyContent: 'center',
   },
+  headerInfo: {
+    gap: 4,
+  },
+  footerInfo: {
+    marginTop: spacing.sm,
+  },
   categoryName: {
     ...typography.labelSmall,
-    color: colors.textSecondary,
     fontSize: 10,
     letterSpacing: 0.8,
   },
   productName: {
     ...typography.heading3,
-    color: colors.text,
     fontSize: 14,
     minHeight: 38,
   },
@@ -229,24 +251,21 @@ const styles = StyleSheet.create({
   },
   customerPrice: {
     ...typography.heading2,
-    color: colors.primary,
     fontSize: 16,
     fontWeight: '700',
   },
   dealerPricePill: {
-    backgroundColor: colors.surfaceMuted,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
   },
   dealerPriceText: {
     ...typography.labelSmall,
-    color: colors.coral,
     fontWeight: '700',
     fontSize: 11,
   },
   cartButton: {
-    backgroundColor: colors.yellow,
+    backgroundColor: '#FFBA00',
     borderRadius: radius.sm,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
@@ -258,18 +277,16 @@ const styles = StyleSheet.create({
   },
   cartButtonText: {
     ...typography.labelSmall,
-    color: colors.primary,
+    color: '#210440',
     fontWeight: '700',
   },
   placeholderContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
     gap: spacing.xs,
   },
   placeholderText: {
     ...typography.labelSmall,
-    color: colors.textSecondary,
     fontSize: 10,
   },
 });

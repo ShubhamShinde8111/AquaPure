@@ -1,22 +1,34 @@
 /**
  * AquaPure — Card Component
- * Follows DESIGN.md §4.3 Elevation and Borders
+ * Follows DESIGN.md §4.3 Elevation and Borders with dynamic light/dark theming.
  */
 
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { colors } from '@/theme/colors';
-import { spacing, radius } from '@/theme/spacing';
+import { useTheme, spacing, radius } from '@/theme';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: ViewStyle | (ViewStyle | false | undefined | null)[];
   padded?: boolean;
 }
 
 export function Card({ children, style, padded = true }: CardProps) {
+  const { colors, isDark } = useTheme();
+
   return (
-    <View style={[styles.card, padded && styles.padded, style]}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          shadowOpacity: isDark ? 0.3 : 0.05,
+        },
+        padded && styles.padded,
+        style,
+      ]}
+    >
       {children}
     </View>
   );
@@ -24,13 +36,10 @@ export function Card({ children, style, padded = true }: CardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 1,
   },

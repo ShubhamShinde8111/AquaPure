@@ -42,9 +42,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useCheckoutStore } from '@/stores/checkoutStore';
 import { useAuthStore } from '@/stores/authStore';
 import { Product, CartItem } from '@/types';
-import { colors } from '@/theme/colors';
-import { spacing, radius } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { useTheme, useThemedStyles, ThemeColors, spacing, radius, typography } from '@/theme';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { LoadingState, ErrorState, AppRefreshControl } from '@/components/ui';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -60,6 +58,7 @@ function GalleryImage({
   uri: string;
   onPress?: () => void;
 }) {
+  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -67,7 +66,10 @@ function GalleryImage({
     <TouchableOpacity
       activeOpacity={0.92}
       onPress={onPress}
-      style={galleryStyles.imageSlide}
+      style={[
+        galleryStyles.imageSlide,
+        { backgroundColor: isDark ? '#150D20' : colors.card },
+      ]}
       accessibilityRole="button"
       accessibilityLabel="Product image. Tap to view full screen zoom."
     >
@@ -102,7 +104,6 @@ const galleryStyles = StyleSheet.create({
   imageSlide: {
     width: SCREEN_WIDTH,
     height: IMAGE_HEIGHT,
-    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.md,
@@ -115,18 +116,20 @@ const galleryStyles = StyleSheet.create({
     ...(StyleSheet.absoluteFill as object),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
   },
   errorText: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
+    color: '#9E94A8',
     marginTop: spacing.sm,
   },
 });
 
 // ──── Main Screen ────
 export default function ProductDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
+  const { id, productId } = useLocalSearchParams<{ id?: string; productId?: string }>();
+  const targetId = id || productId;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -139,19 +142,19 @@ export default function ProductDetailScreen() {
   const galleryRef = useRef<FlatList>(null);
 
   const loadProduct = useCallback(async () => {
-    if (!id) return;
-    const data = await ProductsService.getProductById(id);
+    if (!targetId) return;
+    const data = await ProductsService.getProductById(targetId);
     setProduct(data);
-  }, [id]);
+  }, [targetId]);
 
   const { refreshing, onRefresh } = usePullToRefresh(loadProduct);
 
   useEffect(() => {
     let isMounted = true;
     async function initLoad() {
-      if (!id) return;
+      if (!targetId) return;
       setLoading(true);
-      const data = await ProductsService.getProductById(id);
+      const data = await ProductsService.getProductById(targetId);
       if (isMounted) {
         setProduct(data);
         setLoading(false);
@@ -161,7 +164,7 @@ export default function ProductDetailScreen() {
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [targetId]);
 
   // Toast animation
   useEffect(() => {
@@ -1079,153 +1082,154 @@ export default function ProductDetailScreen() {
 }
 
 // ──── Styles ────
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.white,
-  },
-  navButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navTitle: {
-    ...typography.heading3,
-    color: colors.text,
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: spacing.sm,
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    // Enough padding at bottom so content is never covered by the action bar
-    paddingBottom: 120,
-  },
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    navBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    navButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    navTitle: {
+      ...typography.heading3,
+      color: colors.text,
+      flex: 1,
+      textAlign: 'center',
+      marginHorizontal: spacing.sm,
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      // Enough padding at bottom so content is never covered by the action bar
+      paddingBottom: 120,
+    },
 
-  // ── Gallery ──
-  imageContainer: {
-    width: SCREEN_WIDTH,
-    height: IMAGE_HEIGHT,
-    backgroundColor: colors.white,
-    position: 'relative',
-  },
-  zoomHintBadge: {
-    position: 'absolute',
-    bottom: spacing.md,
-    right: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(33, 4, 64, 0.72)',
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 5,
-    borderRadius: radius.full,
-  },
-  zoomHintText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.white,
-  },
-  thumbnailContainer: {
-    backgroundColor: colors.white,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  thumbnailList: {
-    paddingHorizontal: spacing.md,
-    gap: spacing.sm,
-    alignItems: 'center',
-  },
-  thumbnailItem: {
-    width: 58,
-    height: 58,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
-    padding: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  thumbnailItemActive: {
-    borderColor: colors.primary,
-    borderWidth: 2,
-  },
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
-  },
-  paginationRow: {
-    position: 'absolute',
-    bottom: spacing.md,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.border,
-  },
-  paginationDotActive: {
-    backgroundColor: colors.primary,
-    width: 20,
-    borderRadius: 4,
-  },
-  imageCounterBadge: {
-    position: 'absolute',
-    bottom: spacing.md,
-    left: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(33, 4, 64, 0.65)',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: radius.full,
-  },
-  imageCounterText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.white,
-  },
+    // ── Gallery ──
+    imageContainer: {
+      width: SCREEN_WIDTH,
+      height: IMAGE_HEIGHT,
+      backgroundColor: isDark ? '#150D20' : colors.card,
+      position: 'relative',
+    },
+    zoomHintBadge: {
+      position: 'absolute',
+      bottom: spacing.md,
+      right: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: 'rgba(33, 4, 64, 0.72)',
+      paddingHorizontal: spacing.sm + 2,
+      paddingVertical: 5,
+      borderRadius: radius.full,
+    },
+    zoomHintText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    thumbnailContainer: {
+      backgroundColor: colors.card,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    thumbnailList: {
+      paddingHorizontal: spacing.md,
+      gap: spacing.sm,
+      alignItems: 'center',
+    },
+    thumbnailItem: {
+      width: 58,
+      height: 58,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      backgroundColor: isDark ? '#1A1125' : colors.card,
+      padding: 3,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    thumbnailItemActive: {
+      borderColor: isDark ? colors.yellow : colors.primary,
+      borderWidth: 2,
+    },
+    thumbnailImage: {
+      width: '100%',
+      height: '100%',
+    },
+    paginationRow: {
+      position: 'absolute',
+      bottom: spacing.md,
+      left: 0,
+      right: 0,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    paginationDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.border,
+    },
+    paginationDotActive: {
+      backgroundColor: isDark ? colors.yellow : colors.primary,
+      width: 20,
+      borderRadius: 4,
+    },
+    imageCounterBadge: {
+      position: 'absolute',
+      bottom: spacing.md,
+      left: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: 'rgba(33, 4, 64, 0.65)',
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 3,
+      borderRadius: radius.full,
+    },
+    imageCounterText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
 
-  // ── Info Card ──
-  infoCard: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
-    marginTop: -radius.lg,
-    padding: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xs,
-  },
+    // ── Info Card ──
+    infoCard: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      marginTop: -radius.lg,
+      padding: spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    categoryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.xs,
+    },
   categoryPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1428,7 +1432,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   specRowAlt: {
     backgroundColor: colors.surfaceMuted,
@@ -1474,7 +1478,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1540,18 +1544,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: isDark ? '#26153B' : '#F3E8FF',
     borderRadius: radius.lg,
     padding: spacing.md,
     marginTop: spacing.xl,
     borderWidth: 1,
-    borderColor: '#D8B4FE',
+    borderColor: isDark ? '#402364' : '#D8B4FE',
   },
   serviceCalloutIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -1561,7 +1565,7 @@ const styles = StyleSheet.create({
   },
   serviceCalloutTitle: {
     ...typography.label,
-    color: colors.primary,
+    color: isDark ? '#FFFFFF' : colors.primary,
     fontSize: 13,
   },
   serviceCalloutSubtitle: {
@@ -1575,7 +1579,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1585,7 +1589,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 100,
     alignSelf: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
@@ -1608,7 +1612,7 @@ const styles = StyleSheet.create({
 
   // ── Bottom Action Bar ──
   actionBar: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     // Respect Android navigation bar insets
@@ -1632,7 +1636,7 @@ const styles = StyleSheet.create({
   },
   actionBarPrice: {
     ...typography.heading2,
-    color: colors.primary,
+    color: isDark ? colors.yellow : colors.primary,
     fontSize: 18,
   },
   actionBarButtons: {
@@ -1647,14 +1651,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.xs,
     borderWidth: 1.5,
-    borderColor: colors.primary,
+    borderColor: isDark ? colors.yellow : colors.primary,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     minHeight: 46,
   },
   cartBtnText: {
     ...typography.label,
-    color: colors.primary,
+    color: isDark ? colors.yellow : colors.primary,
   },
   buyBtn: {
     flex: 1,
@@ -1667,7 +1671,7 @@ const styles = StyleSheet.create({
   },
   buyBtnText: {
     ...typography.label,
-    color: colors.primary,
+    color: '#210440',
     fontWeight: '700',
   },
   disabledBtn: {
@@ -1698,7 +1702,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   zoomModalCounter: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -1733,7 +1737,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: radius.md,
-    backgroundColor: colors.white,
+    backgroundColor: '#FFFFFF',
     padding: 3,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -1754,7 +1758,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   buyNowSheet: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     paddingHorizontal: spacing.lg,
@@ -1817,7 +1821,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   modalProductInfo: {
     flex: 1,
@@ -1829,7 +1833,7 @@ const styles = StyleSheet.create({
   },
   modalProductQty: {
     ...typography.caption,
-    color: colors.primary,
+    color: isDark ? colors.yellow : colors.primary,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -1844,7 +1848,7 @@ const styles = StyleSheet.create({
   },
   existingCartText: {
     ...typography.bodySmall,
-    color: colors.primary,
+    color: isDark ? colors.yellow : colors.primary,
     flex: 1,
     fontSize: 12,
   },
@@ -1853,7 +1857,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surfaceMuted,
     borderWidth: 1.5,
-    borderColor: colors.primary,
+    borderColor: isDark ? colors.yellow : colors.primary,
     borderRadius: radius.lg,
     padding: spacing.md,
     marginBottom: spacing.sm,
@@ -1873,7 +1877,7 @@ const styles = StyleSheet.create({
   choiceTitlePrimary: {
     ...typography.bodyMedium,
     fontWeight: '700',
-    color: colors.primary,
+    color: isDark ? colors.yellow : colors.primary,
   },
   choiceDescPrimary: {
     ...typography.caption,
@@ -1884,7 +1888,7 @@ const styles = StyleSheet.create({
   choiceCardSecondary: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.lg,

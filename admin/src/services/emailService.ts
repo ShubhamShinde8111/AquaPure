@@ -780,16 +780,22 @@ export class EmailService {
    * Helper to dispatch email via AquaPure Mail Server (port 5055)
    */
   private static async dispatchViaMailServer(payload: any): Promise<boolean> {
-    const endpoints = [
+    const rawEndpoints = [
       (import.meta as any).env?.VITE_MAIL_API_URL,
+      'https://aquapure-mail-api.onrender.com/api/send-email',
       'http://localhost:5055/api/send-email',
       'http://127.0.0.1:5055/api/send-email',
     ].filter(Boolean) as string[];
 
+    const endpoints = Array.from(new Set(rawEndpoints));
+
     for (const endpoint of endpoints) {
       try {
+        const isRemote = endpoint.startsWith('https://');
+        // Render free tier can take up to 35s on cold starts
+        const timeoutMs = isRemote ? 35000 : 4000;
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -801,9 +807,12 @@ export class EmailService {
           const json = await res.json();
           console.log(`[Admin EmailService] Email dispatched successfully via AquaPure Mail Server (${endpoint}):`, json);
           return true;
+        } else {
+          const errText = await res.text().catch(() => '');
+          console.warn(`[Admin EmailService] Endpoint ${endpoint} returned status ${res.status}:`, errText);
         }
-      } catch {
-        // Continue to next endpoint
+      } catch (err: any) {
+        console.warn(`[Admin EmailService] Dispatch attempt to ${endpoint} failed (${err?.name || 'Error'}: ${err?.message || err})`);
       }
     }
     return false;

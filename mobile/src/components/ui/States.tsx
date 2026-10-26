@@ -1,13 +1,11 @@
 /**
  * AquaPure — Loading, Empty, and Error State Components
- * Follows DESIGN.md §1.6 Honest States
+ * Follows DESIGN.md §1.6 Honest States with dynamic light/dark theming.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { useTheme, spacing, typography } from '@/theme';
 import { Button } from './Button';
 
 // ──── Loading Spinner ────
@@ -17,10 +15,12 @@ interface LoadingProps {
 }
 
 export function LoadingState({ message = 'Loading…' }: LoadingProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.center}>
       <ActivityIndicator size="large" color={colors.primary} />
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.message, { color: colors.textSecondary }]}>{message}</Text>
     </View>
   );
 }
@@ -42,11 +42,15 @@ export function EmptyState({
   actionLabel,
   onAction,
 }: EmptyProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.center}>
       <Text style={styles.icon}>{icon}</Text>
-      <Text style={styles.title}>{title}</Text>
-      {description ? <Text style={styles.description}>{description}</Text> : null}
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      {description ? (
+        <Text style={[styles.description, { color: colors.textSecondary }]}>{description}</Text>
+      ) : null}
       {actionLabel && onAction ? (
         <Button
           title={actionLabel}
@@ -70,11 +74,13 @@ export function ErrorState({
   message = 'Something went wrong.',
   onRetry,
 }: ErrorProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.center}>
       <Text style={styles.icon}>⚠️</Text>
-      <Text style={styles.title}>Error</Text>
-      <Text style={styles.description}>{message}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Error</Text>
+      <Text style={[styles.description, { color: colors.textSecondary }]}>{message}</Text>
       {onRetry ? (
         <Button
           title="Try Again"
@@ -100,18 +106,15 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.heading2,
-    color: colors.text,
     textAlign: 'center',
   },
   description: {
     ...typography.body,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
   message: {
     ...typography.body,
-    color: colors.textSecondary,
     marginTop: spacing.md,
   },
 });

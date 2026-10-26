@@ -1,6 +1,6 @@
 /**
  * AquaPure — Reusable Button Component
- * Follows DESIGN.md §5 Button Standards
+ * Follows DESIGN.md §5 Button Standards with dynamic light/dark theming.
  */
 
 import React from 'react';
@@ -12,9 +12,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { colors } from '@/theme/colors';
-import { spacing, radius } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { useTheme, spacing, radius, typography } from '@/theme';
 
 type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'destructive';
 
@@ -25,18 +23,11 @@ interface ButtonProps {
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: ViewStyle | (ViewStyle | false | undefined | null)[];
+  textStyle?: TextStyle | (TextStyle | false | undefined | null)[];
   accessibilityLabel?: string;
   fullWidth?: boolean;
 }
-
-const variantStyles: Record<ButtonVariant, { bg: string; text: string; border?: string }> = {
-  primary: { bg: colors.primary, text: colors.white },
-  accent: { bg: colors.yellow, text: colors.primary },
-  secondary: { bg: colors.white, text: colors.primary, border: colors.border },
-  destructive: { bg: colors.error, text: colors.white },
-};
 
 export function Button({
   title,
@@ -50,6 +41,28 @@ export function Button({
   accessibilityLabel,
   fullWidth = false,
 }: ButtonProps) {
+  const { colors, isDark } = useTheme();
+
+  const variantStyles: Record<ButtonVariant, { bg: string; text: string; border?: string }> = {
+    primary: {
+      bg: isDark ? colors.primary : colors.primary,
+      text: isDark ? '#140A20' : colors.rawWhite,
+    },
+    accent: {
+      bg: colors.yellow,
+      text: '#210440',
+    },
+    secondary: {
+      bg: colors.card,
+      text: colors.text,
+      border: colors.border,
+    },
+    destructive: {
+      bg: colors.error,
+      text: colors.rawWhite,
+    },
+  };
+
   const v = variantStyles[variant];
 
   const sizeStyle =
@@ -81,7 +94,7 @@ export function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'accent' ? colors.primary : colors.white}
+          color={variant === 'accent' ? '#210440' : (isDark && variant === 'primary' ? '#140A20' : colors.rawWhite)}
         />
       ) : (
         <Text

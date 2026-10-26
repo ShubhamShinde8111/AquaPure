@@ -4,6 +4,7 @@
 [![React Native / Expo](https://img.shields.io/badge/Expo-SDK_53-black?style=flat-square&logo=expo&logoColor=white)](https://expo.dev/)
 [![React / Vite](https://img.shields.io/badge/React_19-Vite-61DAFB?style=flat-square&logo=react&logoColor=black)](https://vitejs.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-13.x-FFCA28?style=flat-square&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](./LICENSE)
 
 **AquaPure** is a modern, full-stack e-commerce and after-sales service management platform for water purifiers, commercial dispensers, booster pumps, RO membranes, and spare parts. Built with a dual-pricing model serving both **Retail Customers** and **Approved Wholesale Dealers**, AquaPure combines a cross-platform React Native Android app with a React-based web administration dashboard and a serverless Firebase backend.
 
@@ -33,6 +34,7 @@
 - [Firestore Security Rules](#-firestore-security-rules)
 - [Testing & Verification](#-testing--verification)
 - [Security & Production Readiness](#-security--production-readiness)
+- [License](#-license)
 
 ---
 
@@ -156,6 +158,7 @@ WaterPurifierCommerce/
 ├── firestore.indexes.json        # Composite query index definitions
 ├── firebase.json                 # Firebase configuration & emulator setup
 ├── start-mail-server.bat         # Quick launcher for local mail server
+├── LICENSE                       # MIT License
 ├── package.json                  # Root monorepo workspace configuration
 └── README.md                     # Platform documentation
 ```
@@ -374,3 +377,9 @@ Before pushing to production or GitHub, this repository has been sanitized:
 - **Excluded Build Binaries**: APK files, Metro bundle dumps, and build caches are excluded via `.gitignore`.
 - **Safe Example Templates**: Included `.env.example` and `google-services.json.example` files for zero-friction setup without leaking credentials.
 - **Strict Data Access**: Cloud Firestore Security Rules block unauthorized writes, privilege escalation, and cross-customer data leakage.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.

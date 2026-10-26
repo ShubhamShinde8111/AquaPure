@@ -6,8 +6,7 @@
  * - Category selector with counts and domain icons
  * - Real-time search and filter (by name, specs, product code)
  * - 2-column Product Grid with ProductCard
- * - Loading, error, and empty states
- * - Proper bottom padding to avoid tab bar overlay
+ * - Full light & dark theme support with high-contrast text and cards
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -22,6 +21,7 @@ import {
   Dimensions,
   Platform,
   Animated,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,22 +29,22 @@ import { useLocalSearchParams } from 'expo-router';
 import { ProductsService } from '@/services/productsService';
 import { ProductCard } from '@/components/ProductCard';
 import { Product, ProductCategory } from '@/types';
-import { CATEGORIES, CategoryInfo } from '@/data/seedProducts';
-import { colors } from '@/theme/colors';
-import { spacing, radius } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
-import { LoadingState, EmptyState, ErrorState, AppRefreshControl } from '@/components/ui';
+import { CATEGORIES } from '@/data/seedProducts';
+import { useTheme, useThemedStyles, ThemeColors, spacing, radius, typography } from '@/theme';
+import { EmptyState, ErrorState, AppRefreshControl } from '@/components/ui';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = spacing.md;
-const COLUMN_WIDTH = (SCREEN_WIDTH - spacing.lg * 2 - CARD_GAP) / 2;
 
 // Bottom tab bar height (56) + extra padding for Android safe area
 const TAB_BAR_HEIGHT = 56;
 const BOTTOM_CONTENT_PADDING = TAB_BAR_HEIGHT + spacing.lg;
 
 export default function CategoriesScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = Math.floor((windowWidth - spacing.lg * 2 - CARD_GAP) / 2);
   const params = useLocalSearchParams<{ category?: string }>();
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -165,16 +165,10 @@ export default function CategoriesScreen() {
     fetchProducts().finally(() => setLoading(false));
   }, [fetchProducts]);
 
-  // Count for active category label
-  const activeLabel =
-    selectedCategory === 'all'
-      ? 'All Products'
-      : CATEGORIES.find((c) => c.id === selectedCategory)?.name ?? 'Products';
-
   const resultCount = products.length;
 
   const renderSkeletonCard = () => (
-    <Animated.View style={[styles.skeletonCard, { opacity: shimmerOpacity }]}>
+    <Animated.View style={[styles.skeletonCard, { width: cardWidth, opacity: shimmerOpacity }]}>
       <View style={styles.skeletonImage} />
       <View style={styles.skeletonContent}>
         <View style={styles.skeletonCategory} />
@@ -260,7 +254,7 @@ export default function CategoriesScreen() {
             <Ionicons
               name="apps"
               size={14}
-              color={selectedCategory === 'all' ? colors.white : colors.text}
+              color={selectedCategory === 'all' ? (isDark ? '#120722' : '#FFFFFF') : colors.text}
             />
             <Text
               style={[
@@ -324,6 +318,7 @@ export default function CategoriesScreen() {
         </View>
       ) : (
         <FlatList
+          style={styles.flatList}
           data={products}
           keyExtractor={(item) => item.id}
           numColumns={2}
@@ -355,7 +350,7 @@ export default function CategoriesScreen() {
             />
           }
           renderItem={({ item }) => (
-            <View style={styles.cardWrapper}>
+            <View style={[styles.cardWrapper, { width: cardWidth }]}>
               <ProductCard product={item} />
             </View>
           )}
@@ -365,196 +360,206 @@ export default function CategoriesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: isDark ? '#140A20' : colors.primary,
+    },
 
-  // ── Header ──
-  header: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-  },
-  headerContent: {
-    marginBottom: spacing.md,
-  },
-  title: {
-    ...typography.heading1,
-    color: colors.white,
-  },
-  subtitle: {
-    ...typography.bodySmall,
-    color: colors.peach,
-    marginTop: 2,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    height: 44,
-    gap: spacing.sm,
-  },
-  searchInput: {
-    flex: 1,
-    ...typography.body,
-    color: colors.text,
-    paddingVertical: 0, // Remove default padding on Android
-  },
+    // ── Header ──
+    header: {
+      backgroundColor: isDark ? '#140A20' : colors.primary,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.lg,
+    },
+    headerContent: {
+      marginBottom: spacing.md,
+    },
+    title: {
+      ...typography.heading1,
+      color: '#FFFFFF',
+      fontSize: 22,
+    },
+    subtitle: {
+      ...typography.bodySmall,
+      color: colors.peach,
+      marginTop: 2,
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDark ? '#231733' : '#FFFFFF',
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      height: 44,
+      gap: spacing.sm,
+      borderWidth: 1,
+      borderColor: isDark ? '#3D2658' : colors.border,
+    },
+    searchInput: {
+      flex: 1,
+      ...typography.body,
+      color: colors.text,
+      paddingVertical: 0,
+    },
 
-  // ── Category Pills ──
-  categoriesBar: {
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    paddingVertical: spacing.sm,
-  },
-  categoriesContent: {
-    paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
-    alignItems: 'center',
-  },
-  categoryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    height: 36,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
-    backgroundColor: colors.surfaceMuted,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-  },
-  categoryPillActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  categoryPillIcon: {
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  categoryPillText: {
-    ...typography.label,
-    fontSize: 12,
-    color: colors.text,
-  },
-  categoryPillTextActive: {
-    color: colors.white,
-    fontWeight: '700',
-  },
+    // ── Category Pills ──
+    categoriesBar: {
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      paddingVertical: spacing.sm,
+    },
+    categoriesContent: {
+      paddingHorizontal: spacing.lg,
+      gap: spacing.sm,
+      alignItems: 'center',
+    },
+    categoryPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      height: 36,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.full,
+      backgroundColor: colors.card,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+    },
+    categoryPillActive: {
+      backgroundColor: isDark ? colors.primary : colors.primary,
+      borderColor: isDark ? colors.primary : colors.primary,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+        },
+        android: {
+          elevation: 3,
+        },
+      }),
+    },
+    categoryPillIcon: {
+      fontSize: 14,
+      lineHeight: 18,
+    },
+    categoryPillText: {
+      ...typography.label,
+      fontSize: 12,
+      color: colors.text,
+    },
+    categoryPillTextActive: {
+      color: isDark ? '#120722' : '#FFFFFF',
+      fontWeight: '700',
+    },
 
-  // ── Results Bar ──
-  resultsBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  resultsText: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-  },
-  clearAllText: {
-    ...typography.label,
-    fontSize: 12,
-    color: colors.primary,
-  },
+    // ── Results Bar ──
+    resultsBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    resultsText: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+    },
+    clearAllText: {
+      ...typography.label,
+      fontSize: 12,
+      color: isDark ? colors.yellow : colors.primary,
+      fontWeight: '700',
+    },
 
-  // ── Product List ──
-  listContent: {
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-  },
-  emptyListContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  rowWrapper: {
-    justifyContent: 'space-between',
-    marginBottom: CARD_GAP,
-  },
-  cardWrapper: {
-    width: COLUMN_WIDTH,
-  },
+    // ── Product List ──
+    flatList: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    listContent: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+    },
+    emptyListContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    rowWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      gap: CARD_GAP,
+      marginBottom: CARD_GAP,
+    },
+    cardWrapper: {
+      // dynamic width applied in renderItem
+    },
 
-  // ── Error Container ──
-  errorContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+    // ── Error Container ──
+    errorContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  // ── Loading Skeleton ──
-  skeletonContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-  },
-  skeletonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: CARD_GAP,
-  },
-  skeletonCard: {
-    width: COLUMN_WIDTH,
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-  },
-  skeletonImage: {
-    width: '100%',
-    height: 150,
-    backgroundColor: colors.surfaceMuted,
-  },
-  skeletonContent: {
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  skeletonCategory: {
-    width: 60,
-    height: 10,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceMuted,
-  },
-  skeletonTitle: {
-    width: '90%',
-    height: 14,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceMuted,
-  },
-  skeletonTitleShort: {
-    width: '60%',
-    height: 14,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceMuted,
-  },
-  skeletonPrice: {
-    width: 70,
-    height: 16,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceMuted,
-    marginTop: spacing.xs,
-  },
-});
+    // ── Loading Skeleton ──
+    skeletonContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+    },
+    skeletonRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      gap: CARD_GAP,
+      marginBottom: CARD_GAP,
+    },
+    skeletonCard: {
+      backgroundColor: colors.card,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    },
+    skeletonImage: {
+      width: '100%',
+      height: 150,
+      backgroundColor: colors.surfaceMuted,
+    },
+    skeletonContent: {
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    skeletonCategory: {
+      width: 60,
+      height: 10,
+      borderRadius: radius.sm,
+      backgroundColor: colors.surfaceMuted,
+    },
+    skeletonTitle: {
+      width: '90%',
+      height: 14,
+      borderRadius: radius.sm,
+      backgroundColor: colors.surfaceMuted,
+    },
+    skeletonTitleShort: {
+      width: '60%',
+      height: 14,
+      borderRadius: radius.sm,
+      backgroundColor: colors.surfaceMuted,
+    },
+    skeletonPrice: {
+      width: 70,
+      height: 16,
+      borderRadius: radius.sm,
+      backgroundColor: colors.surfaceMuted,
+      marginTop: spacing.xs,
+    },
+  });

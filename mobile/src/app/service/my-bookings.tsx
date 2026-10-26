@@ -20,7 +20,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { ServiceBooking, ServiceStatus, ServiceType } from '@/types';
 import { db } from '@/services/firebase';
 import { collection, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
-import { colors } from '@/theme/colors';
+import { colors, ThemeColors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/hooks/useTheme';
 import { spacing, radius } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -89,6 +90,8 @@ const DEMO_BOOKINGS: ServiceBooking[] = [
 ];
 
 export default function MyBookingsScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(getStyles);
   const { user, isAuthenticated } = useAuthStore();
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -377,235 +380,238 @@ export default function MyBookingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
-  header: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    ...typography.heading1,
-    color: colors.white,
-    fontSize: 20,
-  },
-  subtitle: {
-    ...typography.bodySmall,
-    color: colors.peach,
-    marginTop: 2,
-    fontSize: 12,
-  },
-  bookNewBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.yellow,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-  },
-  bookNewText: {
-    ...typography.label,
-    color: colors.primary,
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  filterTab: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  filterTabActive: {
-    backgroundColor: colors.yellow,
-  },
-  filterTabText: {
-    ...typography.labelSmall,
-    color: colors.white,
-  },
-  filterTabTextActive: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-  },
-  guestNoticeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: '#F3E8FF',
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: '#D8B4FE',
-  },
-  guestNoticeTitle: {
-    ...typography.label,
-    color: colors.primary,
-    fontSize: 12,
-  },
-  guestNoticeText: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  guestNoticeAction: {
-    ...typography.label,
-    color: colors.primary,
-    fontWeight: '700',
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.md,
-    overflow: 'hidden',
-    fontSize: 12,
-  },
-  bookingCard: {
-    backgroundColor: colors.white,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.md,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  serviceIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  serviceTitle: {
-    ...typography.heading3,
-    color: colors.text,
-    fontSize: 15,
-  },
-  bookingIdText: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  scheduleBox: {
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.xs,
-  },
-  scheduleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  scheduleLabel: {
-    ...typography.bodySmall,
-    fontWeight: '700',
-    color: colors.text,
-    fontSize: 12,
-  },
-  scheduleValue: {
-    ...typography.bodySmall,
-    color: colors.text,
-    fontSize: 12,
-  },
-  addressSection: {
-    gap: 2,
-  },
-  addressHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 2,
-  },
-  addressTitle: {
-    ...typography.labelSmall,
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  addressRecipient: {
-    ...typography.bodySmall,
-    fontWeight: '600',
-    color: colors.text,
-    fontSize: 12,
-  },
-  addressLine: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontSize: 12,
-  },
-  notesBox: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-  },
-  notesLabel: {
-    ...typography.labelSmall,
-    color: colors.textSecondary,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  notesText: {
-    ...typography.bodySmall,
-    color: colors.text,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  actionsBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    marginTop: spacing.xs,
-  },
-  supportBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.xs,
-  },
-  supportBtnText: {
-    ...typography.labelSmall,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-});
+const getStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: isDark ? colors.card : colors.primary,
+    },
+    header: {
+      backgroundColor: isDark ? colors.card : colors.primary,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.lg,
+    },
+    headerTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginBottom: spacing.md,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    title: {
+      ...typography.heading1,
+      color: colors.white,
+      fontSize: 20,
+    },
+    subtitle: {
+      ...typography.bodySmall,
+      color: colors.peach,
+      marginTop: 2,
+      fontSize: 12,
+    },
+    bookNewBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: colors.yellow,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      borderRadius: radius.full,
+    },
+    bookNewText: {
+      ...typography.label,
+      color: '#210440',
+      fontWeight: '700',
+      fontSize: 12,
+    },
+    filterRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+    },
+    filterTab: {
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.full,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+    },
+    filterTabActive: {
+      backgroundColor: colors.yellow,
+    },
+    filterTabText: {
+      ...typography.labelSmall,
+      color: colors.white,
+    },
+    filterTabTextActive: {
+      color: '#210440',
+      fontWeight: '700',
+    },
+    scrollView: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      padding: spacing.lg,
+      gap: spacing.lg,
+    },
+    guestNoticeCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: isDark ? 'rgba(167, 139, 250, 0.15)' : '#F3E8FF',
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(167, 139, 250, 0.3)' : '#D8B4FE',
+    },
+    guestNoticeTitle: {
+      ...typography.label,
+      color: colors.primary,
+      fontSize: 12,
+    },
+    guestNoticeText: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    guestNoticeAction: {
+      ...typography.label,
+      color: colors.primary,
+      fontWeight: '700',
+      backgroundColor: colors.card,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+      fontSize: 12,
+    },
+    bookingCard: {
+      backgroundColor: colors.card,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      gap: spacing.md,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+    },
+    serviceIconWrap: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    serviceTitle: {
+      ...typography.heading3,
+      color: colors.text,
+      fontSize: 15,
+    },
+    bookingIdText: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    scheduleBox: {
+      backgroundColor: colors.surfaceMuted,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.xs,
+    },
+    scheduleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    scheduleLabel: {
+      ...typography.bodySmall,
+      fontWeight: '700',
+      color: colors.text,
+      fontSize: 12,
+    },
+    scheduleValue: {
+      ...typography.bodySmall,
+      color: colors.text,
+      fontSize: 12,
+    },
+    addressSection: {
+      gap: 2,
+    },
+    addressHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginBottom: 2,
+    },
+    addressTitle: {
+      ...typography.labelSmall,
+      color: colors.textSecondary,
+      fontSize: 11,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+    },
+    addressRecipient: {
+      ...typography.bodySmall,
+      fontWeight: '600',
+      color: colors.text,
+      fontSize: 12,
+    },
+    addressLine: {
+      ...typography.bodySmall,
+      color: colors.textSecondary,
+      fontSize: 12,
+    },
+    notesBox: {
+      backgroundColor: colors.surfaceMuted,
+      borderRadius: radius.sm,
+      padding: spacing.sm,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.primary,
+    },
+    notesLabel: {
+      ...typography.labelSmall,
+      color: colors.textSecondary,
+      fontSize: 10,
+      fontWeight: '700',
+    },
+    notesText: {
+      ...typography.bodySmall,
+      color: colors.text,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    actionsBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      marginTop: spacing.xs,
+    },
+    supportBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      paddingVertical: spacing.xs,
+    },
+    supportBtnText: {
+      ...typography.labelSmall,
+      color: colors.primary,
+      fontWeight: '600',
+    },
+  });

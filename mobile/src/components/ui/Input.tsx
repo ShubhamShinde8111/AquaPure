@@ -10,9 +10,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { colors } from '@/theme/colors';
-import { spacing, radius } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
+import { useTheme, spacing, radius, typography } from '@/theme';
 
 export type TextInputRef = React.ComponentRef<typeof RNTextInput>;
 
@@ -37,6 +35,7 @@ export const Input = forwardRef<TextInputRef, InputProps>(function Input(
   }: InputProps,
   ref
 ) {
+  const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -52,17 +51,21 @@ export const Input = forwardRef<TextInputRef, InputProps>(function Input(
 
   return (
     <View onLayout={containerOnLayout} style={[styles.container, containerStyle]}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
       <View
         style={[
           styles.inputWrapper,
-          focused && styles.inputFocused,
-          error ? styles.inputError : null,
+          {
+            backgroundColor: colors.inputBackground,
+            borderColor: colors.border,
+          },
+          focused && { borderColor: colors.primary, borderWidth: 2 },
+          error ? { borderColor: colors.error } : null,
         ]}
       >
         <RNTextInput
           ref={ref}
-          style={styles.input}
+          style={[styles.input, { color: colors.text }]}
           placeholderTextColor={colors.textSecondary}
           secureTextEntry={isPassword && !showPassword}
           {...rest}
@@ -79,7 +82,7 @@ export const Input = forwardRef<TextInputRef, InputProps>(function Input(
           </TouchableOpacity>
         )}
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={[styles.error, { color: colors.error }]}>{error}</Text> : null}
     </View>
   );
 });
@@ -90,29 +93,18 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.label,
-    color: colors.text,
     marginBottom: spacing.xs,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.md,
-  },
-  inputFocused: {
-    borderColor: colors.primary,
-    borderWidth: 2,
-  },
-  inputError: {
-    borderColor: colors.error,
   },
   input: {
     flex: 1,
     ...typography.body,
-    color: colors.text,
     paddingVertical: spacing.md,
   },
   eyeButton: {
@@ -123,7 +115,6 @@ const styles = StyleSheet.create({
   },
   error: {
     ...typography.bodySmall,
-    color: colors.error,
     marginTop: spacing.xs,
   },
 });
